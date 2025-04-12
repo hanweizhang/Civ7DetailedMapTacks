@@ -60,6 +60,9 @@ class PlaceMapTackPanel extends Panel {
         InterfaceMode.switchTo("DMT_INTERFACEMODE_MAP_TACK_CHOOSER");
     }
     populateItemDetails(type) {
+        if (type.includes(',')) {
+            this.populateQuarterDetailsHelper(type);
+        }
         const name = MapTackUIUtils.getMapTackName(type);
         const tooltip = MapTackUIUtils.getMapTackTooltip(type);
         // Title
@@ -89,6 +92,16 @@ class PlaceMapTackPanel extends Panel {
             effectsContainer.classList.add("hidden");
         }
     }
+
+    populateQuarterDetailsHelper(type) {
+        const itemList = type.split(',');           // currently just overrides and shows only one, in future, both?
+        for (const e of itemList) {           //  needs css and don't wanna mess with that and ruin other stuff
+            const constructibleType = e.trim()
+            const itemDef = GameInfo.Constructibles.lookup(constructibleType);
+            this.populateItemDetailsHelper(constructibleType, itemDef.Name, itemDef.Tooltip)
+        }
+    }
+
     updatePlacementDetails(placementDetailsStr) {
         let hasContent = false;
         const placementDetailsContainer = this.panel.querySelector("#panel-place-map-tack-placement-details-container");

@@ -58,9 +58,14 @@ class MapTackYieldSingleton {
      *          amount: Yield change amount
      *          text: string for the yield
      */
-    getYieldDetails(x, y, type) {
+    getYieldDetails(x, y, type, type2) {
         const baseYields = MapTackUtils.getConstructibleYieldChanges(type);
         const adjacencyYields = this.getAdjacencyYields(x, y, type);
+        if (type2) {
+            const second_adjacencyYields = this.getAdjacencyYields(x, y, type2);
+            const second_baseYields = MapTackUtils.getConstructibleYieldChanges(type2);
+            return { base: [...baseYields, ...second_baseYields], adjacencies: [...adjacencyYields, ...second_adjacencyYields] };
+        }
 
         return { base: baseYields, adjacencies: adjacencyYields };
     }
