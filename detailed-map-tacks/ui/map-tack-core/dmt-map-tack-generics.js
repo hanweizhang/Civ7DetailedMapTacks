@@ -1,4 +1,5 @@
 import { ConstructibleClassType, ExcludedItems } from "./dmt-map-tack-constants.js";
+import TraitModifier from "./modifier/dmt-trait-modifier.js";
 
 class MapTackGenericsSingleton {
     /**
@@ -173,8 +174,19 @@ class MapTackGenericsSingleton {
         const adjIds = this.genericMapTacks.get(type)?.adjacencyIds || [];
         return adjIds.map(id => ({ id, requiresActivation: false }));
     }
+    getMatchingConstructibles(type) {
+        // Special handling for generic unique quarter.
+        if (MapTackGenerics.isGenericUniqueQuarter(type)) {
+            for (const uniqueQuarterDef of GameInfo.UniqueQuarters) {
+                if (TraitModifier.isTraitActive(uniqueQuarterDef.TraitType)) {
+                    return [uniqueQuarterDef.BuildingType1, uniqueQuarterDef.BuildingType2];
+                }
+            }
+        }
+        return this.matchingCache[type] || [];
+    }
     getTooltipString(type) {
-        const matchingItems = this.matchingCache[type] || [];
+        const matchingItems = this.getMatchingConstructibles(type);
         if (matchingItems.length == 0) {
             return;
         }

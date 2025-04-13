@@ -133,6 +133,16 @@ class MapTackUtilsSingleton {
     isCityCenter(type) {
         return GameInfo.Buildings.lookup(type)?.CityCenterPriority > 0;
     }
+    canBeBuiltOver(type) {
+        const classType = this.getConstructibleClassType(type);
+        if (classType == ConstructibleClassType.WONDER) {
+            return false;
+        } else if (classType == ConstructibleClassType.IMPROVEMENT) {
+            return this.isCommonImprovement(type);
+        } else {
+            return !this.isAgeless(type) && this.isObsolete(type);
+        }
+    }
     getAdjacentPlots(x, y) {
         const plots = [];
         for (const direction of DirectionNames.keys()) {
@@ -189,7 +199,9 @@ class MapTackUtilsSingleton {
     }
     getMapTackTypePlots(mapTackType) {
         return MapTackStore.getCachedMapTackStructs()
-            .filter(s => s.mapTackList?.some(m => m.type == mapTackType))
+            .filter(s => s.mapTackList?.some(m => {
+                return m.type == mapTackType || MapTackGenerics.getMatchingConstructibles(m.type).includes(mapTackType);
+            }))
             .map(s => ({ x: s.x, y: s.y }));
     }
     getCityCenterMapTackPlots() {
@@ -256,6 +268,7 @@ class MapTackUtilsSingleton {
                 details["resource"] = resourceDef?.ResourceType;
             }
             // Constructibles
+            details["constructibles"] = [];
             const canOverrideImprovement = validMapTacks.some(m =>
                 (m.classType == ConstructibleClassType.BUILDING || m.classType == ConstructibleClassType.WONDER));
             const buildingSet = new Set();
@@ -265,7 +278,7 @@ class MapTackUtilsSingleton {
             for (const constructible of constructibles) {
                 if (constructible.classType == ConstructibleClassType.WONDER) {
                     // If there's already a wonder, this plot will only have this constructible
-                    details["constructibles"] = [constructible.type];
+                    details["constructibles"].push(constructible.type);
                 } else if (constructible.classType == ConstructibleClassType.BUILDING) {
                     buildingSet.add(constructible.type);
                 } else if (constructible.classType == ConstructibleClassType.IMPROVEMENT) {
@@ -275,22 +288,35 @@ class MapTackUtilsSingleton {
                     }
                 }
             }
-            // If already has placed buildings or map tack will override improvements, populate buildings from map tack.
-            if (buildingSet.size > 0 || canOverrideImprovement) {
-                for (const mapTack of validMapTacks) {
-                    if (mapTack.classType == ConstructibleClassType.BUILDING || mapTack.classType == ConstructibleClassType.WONDER) {
-                        buildingSet.add(mapTack.type);
+            // If no wonders are being added yet, add buildings and improvements.
+            if (details["constructibles"].length == 0) {
+                // If already has placed buildings or map tack will override improvements, populate buildings from map tack.
+                if (buildingSet.size > 0 || canOverrideImprovement) {
+                    for (const mapTack of validMapTacks) {
+                        if (mapTack.classType == ConstructibleClassType.BUILDING || mapTack.classType == ConstructibleClassType.WONDER) {
+                            // Generic unique quarter special case.
+                            if (MapTackGenerics.isGenericUniqueQuarter(mapTack.type)) {
+                                const uniqueQuarterBuildings = MapTackUtils.getPlayerUniqueQuarterBuildings();
+                                if (uniqueQuarterBuildings.length > 0) {
+                                    for (const uniqueQuarterBuilding of uniqueQuarterBuildings) {
+                                        buildingSet.add(uniqueQuarterBuilding);
+                                    }
+                                    continue;
+                                }
+                            }
+                            buildingSet.add(mapTack.type);
+                        }
                     }
-                }
-                details["constructibles"] = [...buildingSet];
-            } else {
-                // All improvements only.
-                for (const mapTack of validMapTacks) {
-                    if (mapTack.classType == ConstructibleClassType.IMPROVEMENT) {
-                        improvementSet.add(mapTack.type);
+                    details["constructibles"].push(...buildingSet);
+                } else {
+                    // All improvements only.
+                    for (const mapTack of validMapTacks) {
+                        if (mapTack.classType == ConstructibleClassType.IMPROVEMENT) {
+                            improvementSet.add(mapTack.type);
+                        }
                     }
+                    details["constructibles"].push(...improvementSet);
                 }
-                details["constructibles"] = [...improvementSet];
             }
         } else {
             // Plot not visible, only add map tacks.
@@ -478,7 +504,10 @@ class MapTackUtilsSingleton {
     }
     getQuarterType(constructibles) {
         if (constructibles) {
-            const validConstructibles = constructibles.filter(c => !this.isObsolete(c));
+            const validConstructibles = constructibles.filter(c => {
+                // Only need to consider non-obsolete buildings for quarter type calculation.
+                return this.getConstructibleClassType(c) == ConstructibleClassType.BUILDING && !this.canBeBuiltOver(c);
+            });
             const hasGenericUniqueQuarter = validConstructibles.some(c => MapTackGenerics.isGenericUniqueQuarter(c));
             if (validConstructibles.length >= 2) {
                 // Unique quarter check
@@ -491,14 +520,31 @@ class MapTackUtilsSingleton {
                         return QuarterType[uniqueQuarterDef.UniqueQuarterType];
                     }
                 }
-                return hasGenericUniqueQuarter ? QuarterType.GENERIC_UNIQUE_QUARTER : QuarterType.NORMAL_QUARTER;
+                return hasGenericUniqueQuarter ? this.getPlayerUniqueQuarterType() : QuarterType.NORMAL_QUARTER;
             } else if (hasGenericUniqueQuarter) {
-                return QuarterType.GENERIC_UNIQUE_QUARTER;
+                return this.getPlayerUniqueQuarterType();
             } else if (validConstructibles.some(c => this.hasTag(c, "FULL_TILE"))) {
                 return QuarterType.NORMAL_QUARTER;
             }
         }
         return QuarterType.NO_QUARTER;
+    }
+    getPlayerUniqueQuarterBuildings() {
+        for (const uniqueQuarterDef of GameInfo.UniqueQuarters) {
+            if (TraitModifier.isTraitActive(uniqueQuarterDef.TraitType)) {
+                return [uniqueQuarterDef.BuildingType1, uniqueQuarterDef.BuildingType2];
+            }
+        }
+        return [];
+    }
+    getPlayerUniqueQuarterType() {
+        for (const uniqueQuarterDef of GameInfo.UniqueQuarters) {
+            if (TraitModifier.isTraitActive(uniqueQuarterDef.TraitType)) {
+                return uniqueQuarterDef.UniqueQuarterType;
+            }
+        }
+        // GENERIC_UNIQUE_QUARTER by default.
+        return QuarterType.GENERIC_UNIQUE_QUARTER;
     }
     getConstructibleYieldChanges(type) {
         return this.constructibleYieldChanges[type] || [];

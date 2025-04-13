@@ -105,7 +105,7 @@ class MapTackChangeProcessorSingleton {
                     y: mapTack.y,
                     type: mapTack.type,
                     classType: mapTack.classType,
-                    validStatus: MapTackValidator.isValid(mapTack.x, mapTack.y, mapTack.type, false),
+                    validStatus: MapTackValidator.isValid(mapTack.x, mapTack.y, mapTack.type, []),
                     yieldDetails: MapTackYield.getYieldDetails(mapTack.x, mapTack.y, mapTack.type)
                 };
                 newMapTackList.push(newMapTack);

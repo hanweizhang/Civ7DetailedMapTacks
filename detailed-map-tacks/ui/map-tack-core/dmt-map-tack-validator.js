@@ -37,32 +37,49 @@ class MapTackValidatorSingleton {
      * @param {int} x x-coordinate of the plot
      * @param {int} y y-coordinate of the plot
      * @param {String} type type of the map tack
-     * @param {boolean} isAdditive should the type be considered as an additional map tack.
+     * @param {Array} newMapTacks new map tacks to be added.
      * @returns an object with these fields:
      *      isValid: is the map tack valid here.
      *      preventPlacement: should the placement here be prevented.
      *      reasons: an array of strings with reasons if it cannot be placed here.
      */
-    isValid(x, y, type, isAdditive = true) {
+    isValid(x, y, type, newMapTacks = [type]) {
         this.waterPlacement = false;
         this.mountainPlacement = false;
+        const isAdditive = newMapTacks.length > 0;
         let isValid = true;
         let preventPlacement = false;
         const reasons = new Set();
+
+        // Special handling for generic unique quarter.
+        if (MapTackGenerics.isGenericUniqueQuarter(type)) {
+            const uniqueQuarterBuildings = MapTackUtils.getPlayerUniqueQuarterBuildings();
+            if (uniqueQuarterBuildings.length > 0) {
+                // Delegate valid check to unique quarter buildings.
+                const cascadeNewMapTacks = isAdditive ? uniqueQuarterBuildings : [];
+                const validStatuses = uniqueQuarterBuildings.map(buildingType => this.isValid(x, y, buildingType, cascadeNewMapTacks));
+                for (const validStatus of validStatuses) {
+                    isValid = isValid && validStatus.isValid;
+                    preventPlacement = preventPlacement || validStatus.preventPlacement;
+                    validStatus.reasons.forEach(reason => reasons.add(reason));
+                }
+                return { isValid: isValid, preventPlacement: preventPlacement, reasons: [...reasons] };
+            }
+        }
 
         if (isAdditive) {
             const mapTackList = MapTackStore.retrieveMapTacks(x, y);
             // START - Conditions that prevent placing map tacks.
             // 1. Max number of map tacks per plot check.
-            if (mapTackList.length >= MAX_COUNT_PER_PLOT) {
+            if (mapTackList.length + newMapTacks.length > MAX_COUNT_PER_PLOT) {
                 isValid = isValid && false;
                 preventPlacement = preventPlacement || true;
                 reasons.add(Locale.compose("LOC_DMT_INVALID_REASON_REACHED_LIMIT"));
             }
             // 2. Max number of map tacks per plot check for full tile constructibles, like wonders and rail stations.
             if (mapTackList.length > 0) {
-                const uniqueTypesUnderCheck = [type, ...mapTackList.map(mapTack => mapTack.type)];
-                for (const typeUnderCheck of uniqueTypesUnderCheck) {
+                const uniqueMapTacksUnderCheck = new Set([type, ...newMapTacks, ...mapTackList.map(mapTack => mapTack.type)]);
+                for (const typeUnderCheck of uniqueMapTacksUnderCheck) {
                     if (MapTackUtils.isFullTile(typeUnderCheck)) {
                         isValid = isValid && false;
                         preventPlacement = preventPlacement || true;
@@ -85,6 +102,27 @@ class MapTackValidatorSingleton {
 
         const plotDetails = MapTackUtils.getRealizedPlotDetails(x, y);
         const classType = MapTackUtils.getConstructibleClassType(type);
+
+        // START - Number of constructibles check.
+        const existingConstructibles = plotDetails["constructibles"].filter(c => !MapTackUtils.canBeBuiltOver(c));
+        const uniqueTypesUnderCheck = new Set([type, ...newMapTacks, ...existingConstructibles]);
+        // 1. Max number of map tacks per plot check.
+        if (uniqueTypesUnderCheck.size > MAX_COUNT_PER_PLOT) {
+            isValid = isValid && false;
+            reasons.add(Locale.compose("LOC_DMT_INVALID_REASON_REACHED_LIMIT"));
+        }
+        // 2. Max number of map tacks per plot check for full tile constructibles, like wonders and rail stations.
+        if (uniqueTypesUnderCheck.size > 1) {
+            for (const typeUnderCheck of uniqueTypesUnderCheck) {
+                if (MapTackUtils.isFullTile(typeUnderCheck)) {
+                    isValid = isValid && false;
+                    reasons.add(Locale.compose("LOC_DMT_INVALID_REASON_FULL_TILE"));
+                    break;
+                }
+            }
+        }
+        // END - Number of constructibles check.
+
         // START - Common conditions.
         // 1. Biome check.
         if (plotDetails["biome"]) {
@@ -331,7 +369,16 @@ class MapTackValidatorSingleton {
         const itemDef = GameInfo.Improvements.lookup(mapTackType);
         // Common improvements.
         if (itemDef?.CityBuildable == false) {
-            return [mapTackType == MapTackUtils.getFreeImprovementAtPlot(x, y, plotDetails)];
+            const isFree = mapTackType == MapTackUtils.getFreeImprovementAtPlot(x, y, plotDetails);
+            if (isFree) {
+                const terrainType = plotDetails["terrain"];
+                if (terrainType == "TERRAIN_COAST" || terrainType == "TERRAIN_NAVIGABLE_RIVER") {
+                    this.waterPlacement = true;
+                } else if (terrainType == "TERRAIN_MOUNTAIN") {
+                    this.mountainPlacement = true;
+                }
+            }
+            return [isFree];
         } else {
             // City buildable improvements.
             // Require Rural district, but also allow placing on wilderness for easier placements.
@@ -377,13 +424,22 @@ class MapTackValidatorSingleton {
         return [true];
     }
     canPlaceBuilding(_mapTackType, _x, _y, _plotDetails) {
+        // TODO: Rail station and launch pad cannot be placed on plot with 1 obsolete building.
         // No special check for buildings yet.
         return [true];
     }
-    canPlaceWonder(mapTackType, x, y, _plotDetails) {
+    canPlaceWonder(mapTackType, x, y, plotDetails) {
         const itemDef = GameInfo.Wonders.lookup(mapTackType);
+        // Special case WONDER_BATTERSEA_POWER_STATION because it has AdjacentToLand by mistake.
+        if (itemDef && mapTackType == "WONDER_BATTERSEA_POWER_STATION") {
+            itemDef.AdjacentToLand = false;
+        }
         if (itemDef?.AdjacentToLand || itemDef?.MustBeLake) {
             this.waterPlacement = true;
+        }
+        // Cannot be placed on urban district.
+        if (plotDetails["district"] == "DISTRICT_URBAN") {
+            return [false, Locale.compose("LOC_DMT_INVALID_REASON_CANNOT_PLACE_ON_X", "LOC_DISTRICT_URBAN_NAME")];
         }
         // AdjacentCapital check.
         if (itemDef?.AdjacentCapital && MapTackUtils.isAdjacentToConstructible(x, y, "BUILDING_PALACE") == false) {

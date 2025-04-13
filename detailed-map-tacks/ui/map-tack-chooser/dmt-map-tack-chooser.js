@@ -104,18 +104,6 @@ class MapTackChooser extends Panel {
                 }
             }
         }
-        // Unique quarters
-        for (const e of GameInfo.UniqueQuarters) {
-            if (e.TraitType) {
-                if (TraitModifier.isTraitActive(e.TraitType)) {
-                    let firstBuilding = GameInfo.Constructibles.lookup(e.BuildingType1)
-                    let secondBuilding = GameInfo.Constructibles.lookup(e.BuildingType2)
-                    firstBuilding.UniqueQuarterType = e.Name                 // need this for naming
-                    secondBuilding.UniqueQuarterType = e.Name
-                    this.uniqueBuildingDefs.push([firstBuilding, secondBuilding]);
-                }
-            }
-        }
     }
     processCityCenterBuildings() {
         for (const e of GameInfo.Constructibles) {
@@ -234,10 +222,6 @@ class MapTackChooser extends Panel {
                     // This is a generic item
                     item = this.createGenericItem(itemDef);
                 }
-                else if (Array.isArray(itemDef)) {
-                    // this is a unique quarter composed of two constructibles
-                    item = this.createQuarterItem(itemDef);
-                }
                 if (item != null) {
                     itemContainer.appendChild(item);
                 }
@@ -255,13 +239,6 @@ class MapTackChooser extends Panel {
         const tooltip = this.createItemTooltip(type, genericObject.name, 0, MapTackGenerics.getTooltipString(type));
         return this.createItemUI(type, genericObject.classType, tooltip);
     }
-
-    createQuarterItem(genericObject) {
-        const type = genericObject.map(obj => obj.ConstructibleType).join(', ');
-        const tooltip = this.createItemTooltip('DMT_BUILDING_UNIQUE_QUARTER', Locale.stylize(genericObject[0].UniqueQuarterType), 0, MapTackGenerics.getTooltipString('DMT_BUILDING_UNIQUE_QUARTER'));
-        return this.createQuarterItemUI(type, ConstructibleClassType.BUILDING, tooltip);
-    }
-
     createItemTooltip(type, name, cost = 0, subTooltip = null) {
         const container = document.createElement('fxs-tooltip');
         // Header
@@ -307,22 +284,6 @@ class MapTackChooser extends Panel {
         iconWrapper.appendChild(icon);
         return iconWrapper;
     }
-
-    createQuarterItemUI(type, classType, tooltip) {
-        const iconWrapper = document.createElement("fxs-activatable");
-        const iconStyles = MapTackUIUtils.getMapTackIconStyles('DMT_BUILDING_UNIQUE_QUARTER', classType);
-        iconWrapper.classList.add("m-1\\.5", "size-12", "map-tack-icon-wrapper", ...iconStyles);
-        iconWrapper.setAttribute("data-tooltip-content", tooltip);
-        iconWrapper.setAttribute("data-audio-press-ref", "data-audio-select-press");
-        console.error(`found building ${type}`)
-        iconWrapper.addEventListener('action-activate', () => this.mapTackClickListener(type));
-        const icon = document.createElement('fxs-icon');
-        icon.classList.add("size-12");
-        icon.style.backgroundImage = MapTackUIUtils.getMapTackIconBgImage('DMT_BUILDING_UNIQUE_QUARTER');
-        iconWrapper.appendChild(icon);
-        return iconWrapper;
-    }
-
     attachDivider(container) {
         const divider = document.createElement("div");
         divider.classList.add("filigree-divider-inner-frame", "w-full");

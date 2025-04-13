@@ -32,7 +32,6 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         this.plotOverlayGroup = null;
         this.plotOverlay = null;
         this.yieldSpriteGrid = null;
-        this.isQuarter = null
 
         this.validStatus = {};
         this.yieldDetails = {};
@@ -44,15 +43,6 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         this.itemType = this.Context.type;
         this.isCityCenter = MapTackUtils.isCityCenter(this.itemType);
         this.isGenericImprovement = MapTackGenerics.isGenericImprovement(this.itemType);
-        if (this.Context.type.includes(',')) {
-            this.isQuarter = true
-            const itemList = this.Context.type.split(',');
-            this.firstBuilding = itemList[0]
-            this.secondBuilding = itemList[1].trim()
-        }
-        else {
-            this.isQuarter = false
-        }
         return true;
     }
     decorate(overlayGroup, _modelGroup) {
@@ -143,12 +133,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
                 else {
                     UI.setCursorByURL("fs://game/core/ui/cursors/place.ani");
                     // Yields
-                    if (this.isQuarter) {
-                         this.yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.firstBuilding, this.secondBuilding);
-                     }
-                    else {
-                         this.yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.itemType);
-                    }
+                    this.yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.itemType);
                 }
                 this.updatePlacementDetails();
                 // Update city center border overlay if needed.
@@ -202,13 +187,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
                 if (validStatus.preventPlacement) {
                     continue;
                 }
-                let yieldDetails = []
-                if (this.isQuarter) {
-                    yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.firstBuilding, this.secondBuilding);
-                }
-                else {
-                    yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.itemType);
-                }
+                const yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.itemType);
                 const totalYields = MapTackUIUtils.getTotalYields(yieldDetails) || [];
                 const pillOffsets = this.getXYOffsetForPill(totalYields.length);
                 let totalValue = 0;
@@ -269,12 +248,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         }
         this.isPlotProposed = true;
         this.proposePlot(plot, () => {
-            if (this.itemType.includes(',')) {
-                this.commitQuarterPlot(plot);
-            }
-            else {
-                this.commitPlot(plot);
-            }
+            this.commitPlot(plot);
             Audio.playSound("data-audio-city-production-placement-activate", "city-actions");
             InterfaceMode.switchTo("DMT_INTERFACEMODE_MAP_TACK_CHOOSER");
         }, () => this.isPlotProposed = false);
@@ -297,30 +271,6 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
             validStatus: this.validStatus,
             yieldDetails: this.yieldDetails
         };
-        engine.trigger("AddMapTackRequest", mapTackData);
-    }
-
-    commitQuarterPlot(plot) {
-        const itemList = this.itemType.split(',')
-        const firstItem = itemList[0].trim()
-        const secondItem = itemList[1].trim()
-        const altMapTackData = {
-            x: plot.x,
-            y: plot.y,
-            type: firstItem,
-            classType: MapTackUtils.getConstructibleClassType(firstItem),
-            validStatus: this.validStatus,
-            yieldDetails: this.yieldDetails
-        };
-        const mapTackData = {
-            x: plot.x,
-            y: plot.y,
-            type: secondItem,
-            classType: MapTackUtils.getConstructibleClassType(secondItem),
-            validStatus: this.validStatus,
-            yieldDetails: this.yieldDetails
-        };
-        engine.trigger("AddMapTackRequest", altMapTackData);
         engine.trigger("AddMapTackRequest", mapTackData);
     }
     handleInput(inputEvent) {

@@ -58,15 +58,21 @@ class MapTackYieldSingleton {
      *          amount: Yield change amount
      *          text: string for the yield
      */
-    getYieldDetails(x, y, type, type2) {
-        const baseYields = MapTackUtils.getConstructibleYieldChanges(type);
-        const adjacencyYields = this.getAdjacencyYields(x, y, type);
-        if (type2) {
-            const second_adjacencyYields = this.getAdjacencyYields(x, y, type2);
-            const second_baseYields = MapTackUtils.getConstructibleYieldChanges(type2);
-            return { base: [...baseYields, ...second_baseYields], adjacencies: [...adjacencyYields, ...second_adjacencyYields] };
+    getYieldDetails(x, y, type) {
+        // Special handling for generic unique quarter.
+        if (MapTackGenerics.isGenericUniqueQuarter(type)) {
+            const uniqueQuarterBuildings = MapTackUtils.getPlayerUniqueQuarterBuildings();
+            if (uniqueQuarterBuildings.length > 0) {
+                // Delegate yields to unique quarter buildings.
+                const yieldDetails = uniqueQuarterBuildings.map(buildingType => this.getYieldDetails(x, y, buildingType));
+                const baseYields = yieldDetails.flatMap(sub => sub.base);
+                const adjacencyYields = yieldDetails.flatMap(sub => sub.adjacencies);
+                return { base: baseYields, adjacencies: adjacencyYields };
+            }
         }
 
+        const baseYields = MapTackUtils.getConstructibleYieldChanges(type);
+        const adjacencyYields = this.getAdjacencyYields(x, y, type);
         return { base: baseYields, adjacencies: adjacencyYields };
     }
     getBonusYields(_x, _y, _type) {
