@@ -79,6 +79,7 @@
                     <Item>ui/plot-icons/dmt-map-tack-icons.js</Item>
                     <Item>ui/plot-icons/dmt-plot-icon-suggested-settlement-decorator.js</Item>
                     <Item>ui/plot-icons/dmt-plot-icons-root-decorator.js</Item>
+                    <Item>ui/views/dmt-view-map-tack-placement.js</Item>
                 </UIScripts>
                 <UpdateText>
                     <Item>text/en_us/InputText.xml</Item>

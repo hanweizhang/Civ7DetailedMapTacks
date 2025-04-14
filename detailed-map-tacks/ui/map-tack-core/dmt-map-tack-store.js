@@ -18,6 +18,7 @@ import { Catalog } from '/core/ui/utilities/utility-serialize.js';
  */
 
 const ID_MAP_TACK = "MAP_TACK";
+const ID_MAP_TACK_SETTING = "MAP_TACK_SETTING";
 class MapTackStoreSingleton {
     /**
      * Singleton accessor
@@ -159,6 +160,14 @@ class MapTackStoreSingleton {
     }
     getMapTackKey(x, y) {
         return `${x}-${y}`;
+    }
+    getSetting(key) {
+        const settingObj = this.catalog.getObject(ID_MAP_TACK_SETTING);
+        return settingObj.read(key);
+    }
+    updateSetting(key, value) {
+        const settingObj = this.catalog.getObject(ID_MAP_TACK_SETTING);
+        settingObj.write(key, value);
     }
 }
 

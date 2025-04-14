@@ -21,6 +21,7 @@ export default [
         languageOptions: {
             globals: {
                 ...globals.browser,
+                Camera: "readonly",
                 Color: "readonly",
                 Component: "readonly",
                 Configuration: "readonly",

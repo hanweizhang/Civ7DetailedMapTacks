@@ -19,6 +19,9 @@
         <Replace Tag="LOC_DMT_CLICK_TO_DELETE" Language="de_DE">
             <Text>Klicken zum Löschen</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS" Language="de_DE">
+            <Text>Strg + Mausrad, um den Vorschauradius anzupassen</Text>
+        </Replace>
 
         <Replace Tag="LOC_DMT_SPECIAL_SECTION" Language="de_DE">
             <Text>Besondere</Text>

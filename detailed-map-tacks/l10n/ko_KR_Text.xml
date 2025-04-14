@@ -19,6 +19,9 @@
         <Replace Tag="LOC_DMT_CLICK_TO_DELETE" Language="ko_KR">
             <Text>클릭하여 삭제</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS" Language="ko_KR">
+            <Text>Ctrl + 마우스 휠로 미리보기 반경 조절</Text>
+        </Replace>
 
         <Replace Tag="LOC_DMT_SPECIAL_SECTION" Language="ko_KR">
             <Text>특별</Text>

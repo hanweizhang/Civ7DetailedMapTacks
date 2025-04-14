@@ -19,6 +19,9 @@
         <Replace Tag="LOC_DMT_CLICK_TO_DELETE" Language="pl_PL">
             <Text>Kliknij, aby usunąć</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS" Language="pl_PL">
+            <Text>Ctrl + Kółko myszy, aby dostosować promień podglądu</Text>
+        </Replace>
 
         <Replace Tag="LOC_DMT_SPECIAL_SECTION" Language="pl_PL">
             <Text>Specjalny</Text>

@@ -19,6 +19,9 @@
         <Replace Tag="LOC_DMT_CLICK_TO_DELETE" Language="zh_Hans_CN">
             <Text>点击以删除</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS" Language="zh_Hans_CN">
+            <Text>按住 Ctrl 并滚动鼠标滚轮调整预览半径</Text>
+        </Replace>
 
         <Replace Tag="LOC_DMT_SPECIAL_SECTION" Language="zh_Hans_CN">
             <Text>特殊</Text>

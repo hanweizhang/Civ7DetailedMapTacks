@@ -1,7 +1,8 @@
 
 import { Audio } from '/core/ui/audio-base/audio-support.js';
 import ChoosePlotInterfaceMode from '/base-standard/ui/interface-modes/interface-mode-choose-plot.js';
-import { InterfaceMode, InterfaceModeChangedEventName } from '/core/ui/interface-modes/interface-modes.js';
+import Cursor from '/core/ui/input/cursor.js';
+import { InterfaceMode } from '/core/ui/interface-modes/interface-modes.js';
 import { MustGetElement } from '/core/ui/utilities/utilities-dom.js';
 import { PlotCursorUpdatedEventName } from '/core/ui/input/plot-cursor.js';
 import LensManager from '/core/ui/lenses/lens-manager.js';
@@ -11,6 +12,7 @@ import MapTackYield from '../map-tack-core/dmt-map-tack-yield.js';
 import { OVERLAY_PRIORITY } from '/base-standard/ui/utilities/utilities-overlay.js';
 import MapTackUIUtils from '../map-tack-core/dmt-map-tack-ui-utils.js';
 import MapTackGenerics from '../map-tack-core/dmt-map-tack-generics.js';
+import MapTackStore from '../map-tack-core/dmt-map-tack-store.js';
 
 const YIELD_SPRITE_X_PADDING = 11;
 const YIELD_SPRITE_Y_OFFSET = -25;
@@ -18,6 +20,7 @@ const CLEAR_BORDER_OVERLAY_STYLE = {
     style: "CommanderRadius",
     primaryColor: Color.convertToLinear([255, 255, 255, 255])
 };
+const SETTING_PREVIEW_RADIUS = "PreviewRadius";
 /**
  * Handler for DMT_INTERFACEMODE_PLACE_MAP_TACKS.
  */
@@ -25,6 +28,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
     constructor() {
         super(...arguments);
         this.lastHoveredPlot = -1;
+        this.previewRadius = MapTackStore.getSetting(SETTING_PREVIEW_RADIUS) ?? 1;
         this.itemType = null;
         this.isCityCenter = false;
         this.isGenericImprovement = false;
@@ -37,12 +41,14 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         this.yieldDetails = {};
 
         this.plotCursorUpdatedListener = this.onPlotCursorUpdated.bind(this);
-        this.interfaceModeChangedListener = this.onInterfaceModeChanged.bind(this);
+        this.updateFrameListener = this.onUpdateFrame.bind(this);
     }
     initialize() {
         this.itemType = this.Context.type;
         this.isCityCenter = MapTackUtils.isCityCenter(this.itemType);
         this.isGenericImprovement = MapTackGenerics.isGenericImprovement(this.itemType);
+        this.panel = MustGetElement("dmt-panel-place-map-tack");
+        this.panel.setAttribute("item-type", this.itemType);
         return true;
     }
     decorate(overlayGroup, _modelGroup) {
@@ -65,7 +71,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         UI.setCursorByURL("fs://game/core/ui/cursors/place.ani");
         this.lastHoveredPlot = -1;
         window.addEventListener(PlotCursorUpdatedEventName, this.plotCursorUpdatedListener);
-        window.addEventListener(InterfaceModeChangedEventName, this.interfaceModeChangedListener);
+        engine.on("UpdateFrame", this.updateFrameListener);
         WorldUI.setUnitVisibility(false);
         Input.setActiveContext(InputContext.World);
         // Enable settler lens when placing city center map tack.
@@ -86,22 +92,18 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         LensManager.disableLayer("fxs-settlement-recommendations-layer");
         LensManager.disableLayer("fxs-random-events-layer");
         window.removeEventListener(PlotCursorUpdatedEventName, this.plotCursorUpdatedListener);
-        window.removeEventListener(InterfaceModeChangedEventName, this.interfaceModeChangedListener);
+        engine.off("UpdateFrame", this.updateFrameListener);
         WorldUI.setUnitVisibility(true);
+        Cursor.shouldBlockZoom = false; // Make sure Cursor zoom block is reset.
         UI.lockCursor(false);
         super.transitionFrom(oldMode, newMode);
     }
-    onInterfaceModeChanged() {
-        // Currently in this mode.
-        if (InterfaceMode.getCurrent() == "DMT_INTERFACEMODE_PLACE_MAP_TACKS") {
-            // Push the chooser to an element under "placement" template screen. Use parent of panel-place-building.
-            this.panel = document.querySelector("dmt-panel-place-map-tack");
-            if (!this.panel) {
-                const parentElement = MustGetElement(".panel-place-building").parentElement;
-                this.panel = document.createElement("dmt-panel-place-map-tack");
-                parentElement.appendChild(this.panel);
-            }
-            this.panel.setAttribute("item-type", this.itemType);
+    onUpdateFrame(_timeDelta) {
+        // Hacky solution to intercept and block zooming.
+        if (Input.isCtrlDown()) {
+            Cursor.shouldBlockZoom = true;
+        } else {
+            Cursor.shouldBlockZoom = false;
         }
     }
     onPlotCursorUpdated(event) {
@@ -168,15 +170,15 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         if (this.plotOverlay && this.yieldSpriteGrid) {
             this.plotOverlay.clear();
             this.yieldSpriteGrid.clear();
-            if (this.isGenericImprovement) {
-                // Don't need to check for generic improvements.
+            if (this.isCityCenter || this.isGenericImprovement) {
+                // Don't need to check for city center and generic improvements.
                 return;
             }
             let bestValue = 0;
             const bestPlotIndices = [];
             const invalidPlotIndices = [];
             const normalPlotIndices = [];
-            const plotIndices = GameplayMap.getPlotIndicesInRadius(hoveredPlot.x, hoveredPlot.y, 1);
+            const plotIndices = GameplayMap.getPlotIndicesInRadius(hoveredPlot.x, hoveredPlot.y, this.previewRadius);
             for (const plotIndex of plotIndices) {
                 const plot = GameplayMap.getLocationFromIndex(plotIndex);
                 const isPlotHidden = GameplayMap.getRevealedState(GameContext.localPlayerID, plot.x, plot.y) == RevealedStates.HIDDEN;
@@ -217,6 +219,12 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
             this.plotOverlay.addPlots(invalidPlotIndices, { fillColor: { x: 0.8, y: 0.1, z: 0.1, w: 0.6 } });
             this.plotOverlay.addPlots(bestPlotIndices, { fillColor: { x: 0.1, y: 0.9, z: 0.1, w: 0.6 } });
         }
+    }
+    updatePreviewRadius(delta) {
+        this.previewRadius = Math.max(0, Math.min(this.previewRadius + delta, 5));
+        MapTackStore.updateSetting(SETTING_PREVIEW_RADIUS, this.previewRadius);
+        // Update UI.
+        this.updateHoverPlotOverlay(GameplayMap.getLocationFromIndex(this.lastHoveredPlot));
     }
     getXYOffsetForPill(totalPills) {
         // Modified from building-placement-layer's getXYOffsetForPill function, but only allow 1 row.
@@ -277,13 +285,21 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         if (inputEvent.detail.status != InputActionStatuses.FINISH) {
             return true;
         }
-        if (inputEvent.isCancelInput() || inputEvent.detail.name == 'sys-menu') {
+        if (inputEvent.isCancelInput() || inputEvent.detail.name == "sys-menu") {
             InterfaceMode.switchTo("DMT_INTERFACEMODE_MAP_TACK_CHOOSER");
             inputEvent.stopPropagation();
             inputEvent.preventDefault();
             return false;
         }
+        if (Input.isCtrlDown()) {
+            if (inputEvent.detail.name == "mousewheel-down" || inputEvent.detail.name == "mousewheel-up") {
+                this.updatePreviewRadius(inputEvent.detail.name == "mousewheel-down" ? -1 : 1);
+                inputEvent.stopPropagation();
+                inputEvent.preventDefault();
+                return false;
+            }
+        }
         return true;
     }
 }
-InterfaceMode.addHandler('DMT_INTERFACEMODE_PLACE_MAP_TACKS', new PlaceMapTacksInterfaceMode());
+InterfaceMode.addHandler("DMT_INTERFACEMODE_PLACE_MAP_TACKS", new PlaceMapTacksInterfaceMode());

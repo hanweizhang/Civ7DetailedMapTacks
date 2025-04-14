@@ -19,6 +19,9 @@
         <Replace Tag="LOC_DMT_CLICK_TO_DELETE" Language="fr_FR">
             <Text>Cliquez pour supprimer</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS" Language="fr_FR">
+            <Text>Ctrl + Molette de la souris pour ajuster le rayon d’aperçu</Text>
+        </Replace>
 
         <Replace Tag="LOC_DMT_SPECIAL_SECTION" Language="fr_FR">
             <Text>Spécial</Text>

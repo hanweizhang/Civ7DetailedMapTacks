@@ -19,6 +19,9 @@
         <Replace Tag="LOC_DMT_CLICK_TO_DELETE" Language="es_ES">
             <Text>Haga clic para eliminar</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS" Language="es_ES">
+            <Text>Ctrl + Rueda del ratón para ajustar el radio de vista previa</Text>
+        </Replace>
 
         <Replace Tag="LOC_DMT_SPECIAL_SECTION" Language="es_ES">
             <Text>Especial</Text>

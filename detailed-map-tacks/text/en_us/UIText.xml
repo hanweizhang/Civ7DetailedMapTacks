@@ -19,6 +19,9 @@
         <Row Tag="LOC_DMT_CLICK_TO_DELETE">
             <Text>Click to delete</Text>
         </Row>
+        <Row Tag="LOC_DMT_ADJUST_PREVIEW_RADIUS">
+            <Text>Ctrl + Mouse Wheel to adjust the preview radius</Text>
+        </Row>
         <!-- Special map tacks -->
         <Row Tag="LOC_DMT_SPECIAL_SECTION">
             <Text>Special</Text>
