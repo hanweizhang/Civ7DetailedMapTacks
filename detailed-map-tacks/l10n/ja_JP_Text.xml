@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="ja_JP">
             <Text>総収益: {1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="ja_JP">
+            <Text>ボーナス産出量: {1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="ja_JP">
             <Text>隣接ボーナス: {1_Yields}</Text>
         </Replace>

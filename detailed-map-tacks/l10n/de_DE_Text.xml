@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="de_DE">
             <Text>Gesamtertrag: {1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="de_DE">
+            <Text>Bonus-Ertrag: {1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="de_DE">
             <Text>Nachbarschaftsbonus: {1_Yields}</Text>
         </Replace>

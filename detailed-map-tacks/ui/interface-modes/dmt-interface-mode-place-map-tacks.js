@@ -186,6 +186,10 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
                     continue;
                 }
                 const validStatus = MapTackValidator.isValid(plot.x, plot.y, this.itemType);
+                if (!validStatus.isValid && plotIndex != this.lastHoveredPlot) {
+                    // Only show invalid plot if it is being hovered.
+                    continue;
+                }
                 if (validStatus.preventPlacement) {
                     continue;
                 }

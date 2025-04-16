@@ -99,8 +99,15 @@ class MapTackUIUtilsSingleton {
             yieldContainer.innerHTML = Locale.stylize(baseYieldStr);
             container.appendChild(yieldContainer);
         }
+        // Bonus yields
+        const bonusYieldStr = this.getDetailedYieldString(yieldDetails["bonus"], "LOC_DMT_BONUS_YIELD");
+        if (bonusYieldStr) {
+            const yieldContainer = document.createElement('div');
+            yieldContainer.innerHTML = Locale.stylize(bonusYieldStr);
+            container.appendChild(yieldContainer);
+        }
         // Adjacency yields
-        const adjYieldStr = this.getAdjacencyYieldString(yieldDetails["adjacencies"]);
+        const adjYieldStr = this.getDetailedYieldString(yieldDetails["adjacencies"], "LOC_DMT_ADJACENCY_YIELD");
         if (adjYieldStr) {
             const yieldContainer = document.createElement('div');
             yieldContainer.innerHTML = Locale.stylize(adjYieldStr);
@@ -141,30 +148,30 @@ class MapTackUIUtilsSingleton {
         }
         return Locale.compose("LOC_UI_PRODUCTION_BASE_YIELD", this.getYieldString(baseYieldDetails));
     }
-    getAdjacencyYieldString(adjYieldDetails) {
+    getDetailedYieldString(yieldDetails, sumTitle) {
         // Adjacency Bonus: +6 Food + 6 Production
         //      - +2 Food from adjacent XXX (xxx, xxx)
         //      - +2 Food from adjacent YYY (yyy, yyy)
         //      ...
-        if (!adjYieldDetails || adjYieldDetails.length == 0) {
+        if (!yieldDetails || yieldDetails.length == 0) {
             return;
         }
         // Sort adjacencies by type.
-        this.sortYields(adjYieldDetails);
+        this.sortYields(yieldDetails);
 
-        const adjacencyStrings = [];
+        const detailedStrings = [];
         const sumMap = new Map();
-        for (const yieldDetail of adjYieldDetails) {
+        for (const yieldDetail of yieldDetails) {
             // Populate sum.
             const currentSum = sumMap.get(yieldDetail.type) || 0;
             sumMap.set(yieldDetail.type, currentSum + yieldDetail.amount);
             // Add sub adjacency strings
-            adjacencyStrings.push(`[LI] ${Locale.compose(yieldDetail.text)}`);
+            detailedStrings.push(`[LI] ${Locale.compose(yieldDetail.text)}`);
         }
         // Add summary
         const sumYieldDetails = Array.from(sumMap, ([type, amount]) => ({type, amount}));
-        const sumString = Locale.compose("LOC_DMT_ADJACENCY_YIELD", this.getYieldString(sumYieldDetails));
-        return Locale.compose(`${sumString}[N][BLIST]${adjacencyStrings.join("")}[/LIST]`);
+        const sumString = Locale.compose(sumTitle, this.getYieldString(sumYieldDetails));
+        return Locale.compose(`${sumString}[N][BLIST]${detailedStrings.join("")}[/LIST]`);
     }
     getEffectStrings(type) {
         if (MapTackGenerics.isGenericMapTack(type)) {

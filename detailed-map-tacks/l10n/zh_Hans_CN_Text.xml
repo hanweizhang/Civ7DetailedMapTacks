@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="zh_Hans_CN">
             <Text>总产量：{1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="zh_Hans_CN">
+            <Text>额外产量：{1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="zh_Hans_CN">
             <Text>相邻加成：{1_Yields}</Text>
         </Replace>

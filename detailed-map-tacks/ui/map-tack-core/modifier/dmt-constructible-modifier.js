@@ -1,5 +1,4 @@
-
-import MapTackUtils from '../dmt-map-tack-utils.js';
+import MapTackUtils from "../dmt-map-tack-utils.js";
 
 class ConstructibleModifierSingleton {
     /**
@@ -28,32 +27,20 @@ class ConstructibleModifierSingleton {
             this.modifierConstructible[e.ModifierId] = current;
         }
     }
-    isModifierActive(modifierId) {
+    isModifierActive(modifierId, args) {
         const constructibles = this.modifierConstructible[modifierId] || [];
         for (const constructible of constructibles) {
-            if (this.hasConstructible(constructible)) {
+            if (this.hasConstructible(constructible, args)) {
                 return true;
             }
         }
         return false;
     }
-    hasConstructible(constructible) {
-        // Check map tacks.
-        const allValidMapTacks = MapTackUtils.getAllValidMapTacks();
-        for (const mapTack of allValidMapTacks) {
-            if (mapTack.type == constructible) {
-                return true;
-            }
+    hasConstructible(constructible, args = {}) {
+        if (args.constructible == constructible) {
+            return true;
         }
-        // Check existing constructibles.
-        const playerConstructibles = Players.get(GameContext.localPlayerID)?.Constructibles?.getConstructibles();
-        for (const playerConstructible of playerConstructibles) {
-            const constructDef = GameInfo.Constructibles.lookup(playerConstructible.type);
-            if (constructDef.ConstructibleType == constructible) {
-                return true;
-            }
-        }
-        return false;
+        return MapTackUtils.hasConstructible(constructible);
     }
 }
 

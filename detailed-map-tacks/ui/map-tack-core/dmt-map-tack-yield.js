@@ -65,18 +65,34 @@ class MapTackYieldSingleton {
             if (uniqueQuarterBuildings.length > 0) {
                 // Delegate yields to unique quarter buildings.
                 const yieldDetails = uniqueQuarterBuildings.map(buildingType => this.getYieldDetails(x, y, buildingType));
-                const baseYields = yieldDetails.flatMap(sub => sub.base);
-                const adjacencyYields = yieldDetails.flatMap(sub => sub.adjacencies);
-                return { base: baseYields, adjacencies: adjacencyYields };
+                const base = yieldDetails.flatMap(sub => sub.base);
+                const bonus = yieldDetails.flatMap(sub => sub.bonus);
+                const adjacencies = yieldDetails.flatMap(sub => sub.adjacencies);
+                return { base, bonus, adjacencies };
             }
         }
 
-        const baseYields = MapTackUtils.getConstructibleYieldChanges(type);
-        const adjacencyYields = this.getAdjacencyYields(x, y, type);
-        return { base: baseYields, adjacencies: adjacencyYields };
+        const base = MapTackUtils.getConstructibleYieldChanges(type);
+        const bonus = this.getBonusYields(x, y, type);
+        const adjacencies = this.getAdjacencyYields(x, y, type);
+        return { base, bonus, adjacencies };
     }
-    getBonusYields(_x, _y, _type) {
-        // TODO
+    getBonusYields(x, y, type) {
+        const bonusYields = [];
+        const plotDetails = MapTackUtils.getRealizedPlotDetails(x, y);
+
+        // Plot yields.
+        const plotYields = MapTackModifier.getPlotYields(type, { plotDetails, constructible: type });
+        for (const plotYield of plotYields) {
+            const type = plotYield.type;
+            const amount = plotYield.amount;
+            const yieldName = GameInfo.Yields.lookup(type)?.Name;
+            const name = plotYield.name || "LOC_GLOBAL_YIELDS_OTHER";
+            const text = `${Locale.compose("LOC_DMT_YIELD_FROM", amount, yieldName, name)}`;
+            bonusYields.push({ type, amount, text });
+        }
+
+        return bonusYields;
     }
     getAdjacencyYields(x, y, type) {
         const adjacencyYields = [];
@@ -134,73 +150,86 @@ class MapTackYieldSingleton {
      */
     calculateAdjacencyYields(adjacencyDef, adjacentPlotDetails) {
         const adjacencyYields = [];
-        if (adjacencyDef?.AdjacentBiome) {
+        if (!adjacencyDef) {
+            return [];
+        }
+        if (adjacencyDef.AdjacentBiome) {
             const yields = this.getAdjacentBiomeYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentTerrain) {
+        if (adjacencyDef.AdjacentTerrain) {
             const yields = this.getAdjacentTerrainYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentFeature) {
+        if (adjacencyDef.AdjacentFeature) {
             const yields = this.getAdjacentFeatureYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentFeatureClass) {
+        if (adjacencyDef.AdjacentFeatureClass) {
             const yields = this.getAdjacentFeatureClassYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentLake) {
+        if (adjacencyDef.AdjacentLake) {
             const yields = this.getAdjacentLakeYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentNaturalWonder) {
+        if (adjacencyDef.AdjacentNaturalWonder) {
             const yields = this.getAdjacentNaturalWonderYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentRiver) {
+        if (adjacencyDef.AdjacentRiver) {
             const yields = this.getAdjacentRiverYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentNavigableRiver) {
+        if (adjacencyDef.AdjacentNavigableRiver) {
             const yields = this.getAdjacentNavigableRiverYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentResource) {
+        if (adjacencyDef.AdjacentResource) {
             const yields = this.getAdjacentResourceYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentSeaResource) { // Untested
+        if (adjacencyDef.AdjacentSeaResource) { // Untested
             const yields = this.getAdjacentSeaResourceYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentResourceClass != "NO_RESOURCECLASS") { // Untested
+        if (adjacencyDef.AdjacentResourceClass != "NO_RESOURCECLASS") { // Untested
             const yields = this.getAdjacentResourceClassYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentConstructible) {
+        if (adjacencyDef.AdjacentConstructible) {
             const yields = this.getAdjacentConstructibleYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentConstructibleTag) {
+        if (adjacencyDef.AdjacentConstructibleTag) {
             const yields = this.getAdjacentConstructibleTagYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentDistrict) {
+        if (adjacencyDef.AdjacentDistrict) {
             const yields = this.getAdjacentDistrictYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentQuarter) {
+        if (adjacencyDef.AdjacentQuarter) {
             const yields = this.getAdjacentQuarterYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentUniqueQuarter) {
+        if (adjacencyDef.AdjacentUniqueQuarter) {
             const yields = this.getAdjacentUniqueQuarterYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
-        if (adjacencyDef?.AdjacentUniqueQuarterType) {
+        if (adjacencyDef.AdjacentUniqueQuarterType) {
             const yields = this.getAdjacentUniqueQuarterTypeYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
+        }
+        // Flat amount.
+        const flatAmountYield = MapTackModifier.getFlatAmountYield(adjacencyDef.ID);
+        if (flatAmountYield) {
+            const type = adjacencyDef.YieldType;
+            const amount = flatAmountYield.amount;
+            const yieldName = GameInfo.Yields.lookup(type)?.Name;
+            const name = flatAmountYield.name || "LOC_GLOBAL_YIELDS_OTHER";
+            const text = `${Locale.compose("LOC_DMT_YIELD_FROM", amount, yieldName, name)}`;
+            adjacencyYields.push({ type, amount, text });
         }
         return adjacencyYields;
     }

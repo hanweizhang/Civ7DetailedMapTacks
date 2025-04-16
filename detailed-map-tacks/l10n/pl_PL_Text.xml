@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="pl_PL">
             <Text>Całkowity dochód: {1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="pl_PL">
+            <Text>Dodatkowy plon: {1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="pl_PL">
             <Text>Premia za sąsiedztwo: {1_Yields}</Text>
         </Replace>

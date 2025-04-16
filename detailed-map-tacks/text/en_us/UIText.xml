@@ -83,6 +83,9 @@
         <Row Tag="LOC_DMT_TOTAL_YIELD">
             <Text>Total Yield: {1_Yields}</Text>
         </Row>
+        <Row Tag="LOC_DMT_BONUS_YIELD">
+            <Text>Bonus Yield: {1_Yields}</Text>
+        </Row>
         <Row Tag="LOC_DMT_ADJACENCY_YIELD">
             <Text>Adjacency Bonus: {1_Yields}</Text>
         </Row>

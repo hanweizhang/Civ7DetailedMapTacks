@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="ko_KR">
             <Text>총 수확량: {1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="ko_KR">
+            <Text>보너스 수확량: {1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="ko_KR">
             <Text>인접 보너스: {1_Yields}</Text>
         </Replace>

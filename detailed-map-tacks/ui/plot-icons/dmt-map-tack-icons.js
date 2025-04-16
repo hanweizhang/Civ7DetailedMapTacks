@@ -161,9 +161,8 @@ class MapTackIcons extends Component {
         this.clearBorderOverlayGroup?.clearAll();
     }
     mapTackClickListener(mapTackData) {
-        // on click:
         if (InterfaceMode.getCurrent() == "DMT_INTERFACEMODE_MAP_TACK_CHOOSER") {
-            // if the chooser is open, delete the tack.
+            // If the chooser is open, delete the tack.
             engine.trigger("RemoveMapTackRequest", mapTackData);
         } else {
             // TODO: Come up with a better quicker deletion solution.

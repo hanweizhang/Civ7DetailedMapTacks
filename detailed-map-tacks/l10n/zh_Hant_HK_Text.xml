@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="zh_Hant_HK">
             <Text>總收益：{1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="zh_Hant_HK">
+            <Text>額外產量：{1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="zh_Hant_HK">
             <Text>鄰近加成：{1_Yields}</Text>
         </Replace>

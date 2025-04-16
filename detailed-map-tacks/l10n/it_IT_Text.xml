@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="it_IT">
             <Text>Rendimento totale: {1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="it_IT">
+            <Text>Rendimento bonus: {1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="it_IT">
             <Text>Bonus di adiacenza: {1_Yields}</Text>
         </Replace>

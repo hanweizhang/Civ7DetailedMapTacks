@@ -143,6 +143,24 @@ class MapTackUtilsSingleton {
             return !this.isAgeless(type) && this.isObsolete(type);
         }
     }
+    hasConstructible(constructible) {
+        // Check map tacks.
+        const allValidMapTacks = this.getAllValidMapTacks();
+        for (const mapTack of allValidMapTacks) {
+            if (mapTack.type == constructible) {
+                return true;
+            }
+        }
+        // Check existing constructibles.
+        const playerConstructibles = Players.get(GameContext.localPlayerID)?.Constructibles?.getConstructibles() || [];
+        for (const playerConstructible of playerConstructibles) {
+            const constructDef = GameInfo.Constructibles.lookup(playerConstructible.type);
+            if (constructDef.ConstructibleType == constructible) {
+                return true;
+            }
+        }
+        return false;
+    }
     getAdjacentPlots(x, y) {
         const plots = [];
         for (const direction of DirectionNames.keys()) {

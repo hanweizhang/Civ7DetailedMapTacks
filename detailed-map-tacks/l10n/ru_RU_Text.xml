@@ -83,6 +83,9 @@
         <Replace Tag="LOC_DMT_TOTAL_YIELD" Language="ru_RU">
             <Text>Общий доход: {1_Yields}</Text>
         </Replace>
+        <Replace Tag="LOC_DMT_BONUS_YIELD" Language="ru_RU">
+            <Text>Дополнительный доход: {1_Yields}</Text>
+        </Replace>
         <Replace Tag="LOC_DMT_ADJACENCY_YIELD" Language="ru_RU">
             <Text>Бонус за соседство: {1_Yields}</Text>
         </Replace>
