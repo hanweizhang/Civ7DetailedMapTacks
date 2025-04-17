@@ -97,3 +97,55 @@ dmt-map-tack-icons {
     z-index: 1;
     font-size: 0.6666666667rem;
 }
+
+.map-tack-radial-menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.map-tack-radial-menu.active {
+    pointer-events: auto;
+}
+
+.map-tack-radial-menu-button {
+    position: absolute;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: #4f46e5;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translate(0, 0) scale(0);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.map-tack-radial-menu.active .map-tack-radial-menu-button {
+    opacity: 1;
+    scale: 1;
+}
+
+.map-tack-radial-menu .edit,
+.map-tack-radial-menu .upgrade,
+.map-tack-radial-menu .delete {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0) scale(0);
+}
+
+.map-tack-radial-menu.active .edit {
+    transform: translate(-150%, -50px) scale(1);
+}
+.map-tack-radial-menu.active .upgrade {
+    transform: translate(-50%, -70px) scale(1);
+}
+.map-tack-radial-menu.active .delete {
+    transform: translate(50%, -50px) scale(1);
+}

@@ -81,12 +81,19 @@ class MapTackIcons extends Component {
         iconWrapper.classList.add("size-10", "map-tack-icon-wrapper", ...iconStyles);
         iconWrapper.setAttribute("data-tooltip-content", this.createItemTooltip(mapTackData.type));
         iconWrapper.setAttribute("data-audio-press-ref", "data-audio-select-press");
-        iconWrapper.addEventListener("action-activate", () => this.mapTackClickListener(mapTackData));
+        // iconWrapper.addEventListener("action-activate", () => this.mapTackClickListener(mapTackData));
         if (MapTackUtils.isCityCenter(mapTackData.type)) {
             this.clearBorderOverlayGroup = WorldUI.createOverlayGroup("ClearCityCenterBorderOverlayGroup", OVERLAY_PRIORITY.CULTURE_BORDER);
             iconWrapper.addEventListener("mouseenter", () => this.mouseEnterListener());
             iconWrapper.addEventListener("mouseleave", () => this.mouseLeaveListener());
         }
+        // Menu
+        const { menu: radialMenu, toggle } = this.createRadialMenu();
+        iconWrapper.appendChild(radialMenu);
+        iconWrapper.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggle();
+        });
         // Icon
         const icon = document.createElement("fxs-icon");
         icon.classList.add("size-10");
@@ -141,6 +148,39 @@ class MapTackIcons extends Component {
     }
     createYieldTooltip(mapTackData) {
         return MapTackUIUtils.getYieldFragment(mapTackData.yieldDetails).innerHTML;
+    }
+    createRadialMenu(mapTackData) {
+        const menu = document.createElement("div");
+        menu.classList.add("map-tack-radial-menu");
+
+        const makeBtn = (classNames, onClick) => {
+            const btn = document.createElement("div");
+            btn.classList.add("map-tack-radial-menu-button", ...classNames);
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                onClick();
+            });
+            return btn;
+        };
+
+        menu.appendChild(makeBtn(["edit", "img-plus-icon"], () => console.error("Edit")));
+        menu.appendChild(makeBtn(["upgrade", "img-action-upgrade"], () => console.error("Upgrade")));
+        menu.appendChild(makeBtn(["delete", "img-minus-icon"], () => console.error("Delete")));
+
+        // Auto-hide logic
+        let hideTimeout;
+        menu.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
+        menu.addEventListener("mouseleave", () => {
+            hideTimeout = setTimeout(() => menu.classList.remove("active"), 3000);
+        });
+
+        return { menu, toggle() {
+            const isActive = menu.classList.toggle("active");
+            if (isActive) {
+                clearTimeout(hideTimeout);
+                hideTimeout = setTimeout(() => menu.classList.remove("active"), 3000);
+            }
+        }};
     }
     mouseEnterListener() {
         clearTimeout(this.showOverlayTimeout);
