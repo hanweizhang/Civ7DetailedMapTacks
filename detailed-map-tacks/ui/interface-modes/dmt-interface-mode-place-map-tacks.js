@@ -1,7 +1,6 @@
 
 import { Audio } from '/core/ui/audio-base/audio-support.js';
 import ChoosePlotInterfaceMode from '/base-standard/ui/interface-modes/interface-mode-choose-plot.js';
-import Cursor from '/core/ui/input/cursor.js';
 import { InterfaceMode } from '/core/ui/interface-modes/interface-modes.js';
 import { MustGetElement } from '/core/ui/utilities/utilities-dom.js';
 import { PlotCursorUpdatedEventName } from '/core/ui/input/plot-cursor.js';
@@ -13,6 +12,7 @@ import { OVERLAY_PRIORITY } from '/base-standard/ui/utilities/utilities-overlay.
 import MapTackUIUtils from '../map-tack-core/dmt-map-tack-ui-utils.js';
 import MapTackGenerics from '../map-tack-core/dmt-map-tack-generics.js';
 import MapTackStore from '../map-tack-core/dmt-map-tack-store.js';
+import ViewManager from '/core/ui/views/view-manager.js';
 
 const YIELD_SPRITE_X_PADDING = 11;
 const YIELD_SPRITE_Y_OFFSET = -25;
@@ -68,7 +68,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         // Lock out automatic cursor changes
         UI.lockCursor(true);
         // Set the building placement cursor
-        UI.setCursorByURL("fs://game/core/ui/cursors/place.ani");
+        UI.setCursorByType(UIHTMLCursorTypes.Place);
         this.lastHoveredPlot = -1;
         window.addEventListener(PlotCursorUpdatedEventName, this.plotCursorUpdatedListener);
         engine.on("UpdateFrame", this.updateFrameListener);
@@ -94,16 +94,16 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         window.removeEventListener(PlotCursorUpdatedEventName, this.plotCursorUpdatedListener);
         engine.off("UpdateFrame", this.updateFrameListener);
         WorldUI.setUnitVisibility(true);
-        Cursor.shouldBlockZoom = false; // Make sure Cursor zoom block is reset.
+        ViewManager.isWorldInputAllowed = true; // Make sure zoom block is reset.
         UI.lockCursor(false);
         super.transitionFrom(oldMode, newMode);
     }
     onUpdateFrame(_timeDelta) {
         // Hacky solution to intercept and block zooming.
         if (Input.isCtrlDown()) {
-            Cursor.shouldBlockZoom = true;
+            ViewManager.isWorldInputAllowed = false;
         } else {
-            Cursor.shouldBlockZoom = false;
+            ViewManager.isWorldInputAllowed = true;
         }
     }
     onPlotCursorUpdated(event) {
@@ -128,12 +128,12 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
                 // Valid status
                 this.validStatus = MapTackValidator.isValid(plot.x, plot.y, this.itemType);
                 if (this.validStatus.preventPlacement) {
-                    UI.setCursorByURL("fs://game/core/ui/cursors/cantplace.ani");
+                    UI.setCursorByType(UIHTMLCursorTypes.CantPlace);
                     // Skip calculating yields if the map tack cannot be placed.
                     this.yieldDetails = {};
                 }
                 else {
-                    UI.setCursorByURL("fs://game/core/ui/cursors/place.ani");
+                    UI.setCursorByType(UIHTMLCursorTypes.Place);
                     // Yields
                     this.yieldDetails = MapTackYield.getYieldDetails(plot.x, plot.y, this.itemType);
                 }

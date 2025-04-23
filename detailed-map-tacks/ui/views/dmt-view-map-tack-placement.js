@@ -40,6 +40,7 @@ export class MapTackPlacementView {
         return [
             { name: "harness", type: UISystem.HUD, visible: "true" },
             { name: "city-banners", type: UISystem.World, visible: "false" },
+            { name: "district-health-bars", type: UISystem.World, visible: "false" },
             { name: "plot-icons", type: UISystem.World, visible: "true" },
             { name: "plot-tooltips", type: UISystem.World, visible: "true" },
             { name: "plot-vfx", type: UISystem.World, visible: "true" },

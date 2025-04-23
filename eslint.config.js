@@ -51,6 +51,7 @@ export default [
                 RevealedStates: "readonly",
                 RiverTypes: "readonly",
                 UI: "readonly",
+                UIHTMLCursorTypes: "readonly",
                 Units: "readonly",
                 WorldAnchors: "readonly",
                 WorldUI: "readonly",
