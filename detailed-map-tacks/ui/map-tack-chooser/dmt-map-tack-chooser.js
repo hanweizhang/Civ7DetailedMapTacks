@@ -191,7 +191,7 @@ class MapTackChooser extends Panel {
         for (const itemDef of GameInfo.Constructibles) {
             if (classType == itemDef.ConstructibleClass
                     && !this.excludedConstructibles.has(itemDef.ConstructibleType)
-                    && !(itemDef.DistrictDefense && itemDef.ExistingDistrictOnly) // Filter out walls.
+                    && !itemDef.ExistingDistrictOnly // Filter out walls.
                     && !(itemDef.Age != null && itemDef.Age != this.currentAge) // Filter out items that don't belong to this age.
                     && !itemDef.Discovery) {
                 filteredItemDefs.push(itemDef);
