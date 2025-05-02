@@ -2,7 +2,7 @@
 <Database>
     <LocalizedText>
         <Replace Tag="LOC_DMT_MAP_TACKS" Language="ru_RU">
-            <Text>Отметки на карте</Text>
+            <Text>Булавки</Text>
         </Replace>
         <Replace Tag="LOC_DMT_PLACEMENT_DETAILS" Language="ru_RU">
             <Text>Детали размещения</Text>
