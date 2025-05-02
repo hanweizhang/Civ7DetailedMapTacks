@@ -104,7 +104,8 @@ class MapTackValidatorSingleton {
         const classType = MapTackUtils.getConstructibleClassType(type);
 
         // START - Number of constructibles check.
-        const existingConstructibles = plotDetails["constructibles"].filter(c => !MapTackUtils.canBeBuiltOver(c));
+        const existingConstructibles = plotDetails["constructibles"]
+            .filter(c => !MapTackUtils.canBeBuiltOver(c) && !MapTackUtils.isSlotless(c));
         const uniqueTypesUnderCheck = new Set([type, ...newMapTacks, ...existingConstructibles]);
         // 1. Max number of map tacks per plot check.
         if (uniqueTypesUnderCheck.size > MAX_COUNT_PER_PLOT) {

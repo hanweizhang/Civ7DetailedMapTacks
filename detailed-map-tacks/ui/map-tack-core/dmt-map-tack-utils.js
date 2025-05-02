@@ -111,6 +111,10 @@ class MapTackUtilsSingleton {
         const tags = this.constructibleTypeTags[constructibleType];
         return tags && tags.includes(tag);
     }
+    isSlotless(type) {
+        // Walls, for example.
+        return this.hasTag(type, "IGNORE_DISTRICT_PLACEMENT_CAP");
+    }
     isFullTile(type) {
         // Full tile buildings check.
         if (this.hasTag(type, "FULL_TILE")) {
@@ -138,7 +142,7 @@ class MapTackUtilsSingleton {
         if (classType == ConstructibleClassType.WONDER) {
             return false;
         } else if (classType == ConstructibleClassType.IMPROVEMENT) {
-            return this.isCommonImprovement(type);
+            return true;
         } else {
             return !this.isAgeless(type) && this.isObsolete(type);
         }
