@@ -28,10 +28,6 @@ export class DMT_EditorKeyboardMappingDecorator {
             // This action has already been added. Skip it!
             return;
         }
-        if (!Input.hasGesture(actionId, 0, inputContext) && !Input.hasGesture(actionId, 1, inputContext)) {
-            // This action has no gestures in this context. Skip it!
-            return;
-        }
         this.component.actionContainer.appendChild(this.component.createActionEntry(actionId, inputContext));
     }
 }
