@@ -159,7 +159,7 @@ class MapTackUtilsSingleton {
         const playerConstructibles = Players.get(GameContext.localPlayerID)?.Constructibles?.getConstructibles() || [];
         for (const playerConstructible of playerConstructibles) {
             const constructDef = GameInfo.Constructibles.lookup(playerConstructible.type);
-            if (constructDef.ConstructibleType == constructible) {
+            if (constructDef?.ConstructibleType == constructible) {
                 return true;
             }
         }
