@@ -5,11 +5,7 @@ import BuildingPlacementManager from '/base-standard/ui/building-placement/build
 class MapTackLensLayer {
     constructor() {
     }
-    onGameLoaded() {
-        LensManager.enableLayer("dmt-map-tack-layer"); // Enable map tack layer by default.
-    }
     initLayer() {
-        window.addEventListener("user-interface-loaded-and-ready", this.onGameLoaded.bind(this));
         window.addEventListener('layer-hotkey', this.onLayerHotkey.bind(this));
         window.addEventListener(LensActivationEventName, this.onActiveLensChanged.bind(this));
 
@@ -43,6 +39,9 @@ class MapTackLensLayer {
             // Highlight city center plots.
             const plotCoords = MapTackUtils.getCityCenterMapTackPlots() || [];
             this.highlightMapTackPlot(plotCoords);
+        } else if (event.detail?.prevLens == undefined && event.detail?.activeLens == "fxs-default-lens") {
+            // Default lens when transitioning from no lens, meaning the game is just started, enable map tack layer.
+            LensManager.enableLayer("dmt-map-tack-layer");
         }
     }
     highlightMapTackPlot(plotCoords = []) {

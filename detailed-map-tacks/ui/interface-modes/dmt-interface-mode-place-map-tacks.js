@@ -47,7 +47,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         this.itemType = this.Context.type;
         this.isCityCenter = MapTackUtils.isCityCenter(this.itemType);
         this.isGenericImprovement = MapTackGenerics.isGenericImprovement(this.itemType);
-        this.panel = MustGetElement("dmt-panel-place-map-tack");
+        this.panel = MustGetElement("dmt-panel-place-map-tack", document.body);
         this.panel.setAttribute("item-type", this.itemType);
         return true;
     }
