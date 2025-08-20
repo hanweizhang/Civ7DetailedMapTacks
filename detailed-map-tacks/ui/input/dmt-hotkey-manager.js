@@ -1,4 +1,4 @@
-import HotkeyManager from '/core/ui/input/hotkey-manager.js';
+import HotkeyManager from '/core/ui/input/hotkey-manager.chunk.js';
 
 engine.whenReady.then(() => {
     // Since HotkeyManager is already an instance of a singleton class, can directly override its functions without prototype or instance.

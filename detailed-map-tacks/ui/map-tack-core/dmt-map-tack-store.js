@@ -1,5 +1,6 @@
 
-import { Catalog } from '/core/ui/utilities/utility-serialize.js';
+// import { Catalog } from '/core/ui/utilities/utility-serialize.js';
+import { Catalog } from './dmt-utility-serialize.js';
 
 /**
  * Data definition

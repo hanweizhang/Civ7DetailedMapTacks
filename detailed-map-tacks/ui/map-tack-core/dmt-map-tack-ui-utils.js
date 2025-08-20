@@ -2,7 +2,7 @@
 import MapTackGenerics from './dmt-map-tack-generics.js';
 import MapTackUtils from './dmt-map-tack-utils.js';
 import { YieldTypes, ConstructibleClassType } from './dmt-map-tack-constants.js';
-import { getConstructibleEffectStrings, parseConstructibleAdjacency } from '/core/ui/utilities/utilities-core-textprovider.js';
+import { d as getConstructibleEffectStrings, p as parseConstructibleAdjacency } from '/core/ui/utilities/utilities-core-textprovider.chunk.js';
 
 const YieldClassNames = new Map([
     ["YIELD_FOOD", "food"],
