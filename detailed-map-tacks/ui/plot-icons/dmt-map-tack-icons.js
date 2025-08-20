@@ -3,7 +3,7 @@ import { InterfaceMode } from '/core/ui/interface-modes/interface-modes.js';
 import MapTackIconsManager from './dmt-map-tack-icons-manager.js';
 import MapTackUIUtils from '../map-tack-core/dmt-map-tack-ui-utils.js';
 import MapTackUtils from '../map-tack-core/dmt-map-tack-utils.js';
-import { OVERLAY_PRIORITY } from '/base-standard/ui/utilities/utilities-overlay.js';
+import { O as OVERLAY_PRIORITY } from '/base-standard/ui/utilities/utilities-overlay.chunk.js';
 
 class MapTackIcons extends Component {
     constructor() {
