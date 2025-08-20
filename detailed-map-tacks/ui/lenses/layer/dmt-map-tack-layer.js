@@ -1,6 +1,6 @@
 import MapTackUtils from '../../map-tack-core/dmt-map-tack-utils.js';
 import { L as LensManager, a as LensActivationEventName } from '/core/ui/lenses/lens-manager.chunk.js';
-import BuildingPlacementManager from '/base-standard/ui/building-placement/building-placement-manager.js';
+import { BuildingPlacementManager } from '/base-standard/ui/building-placement/building-placement-manager.js';
 
 class MapTackLensLayer {
     constructor() {
