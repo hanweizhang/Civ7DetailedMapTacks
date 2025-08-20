@@ -70,6 +70,7 @@
                     <Item>ui/map-tack-core/dmt-map-tack-utils.js</Item>
                     <Item>ui/map-tack-core/dmt-map-tack-validator.js</Item>
                     <Item>ui/map-tack-core/dmt-map-tack-yield.js</Item>
+                    <Item>ui/map-tack-core/dmt-utility-serialize.js</Item>
                     <Item>ui/mini-map/dmt-lens-panel-decorator.js</Item>
                     <Item>ui/mini-map/dmt-panel-mini-map-decorator.js</Item>
                     <Item>ui/options/editors/dmt-editor-keyboard-mapping-decorator.js</Item>
