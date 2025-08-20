@@ -37,6 +37,7 @@ export default [
                 Game: "readonly",
                 GameContext: "readonly",
                 GameInfo: "readonly",
+                GameTutorial: "readonly",
                 GameplayMap: "readonly",
                 Input: "readonly",
                 InputActionStatuses: "readonly",
