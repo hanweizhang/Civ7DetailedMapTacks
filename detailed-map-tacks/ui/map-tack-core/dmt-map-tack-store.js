@@ -45,8 +45,8 @@ class MapTackStoreSingleton {
     }
     onReady() {
         // engine.on("GameStarted", this.onGameLoaded, this);
-        // Loading.runWhenLoaded(this.onGameLoaded.bind(this));
-        window.addEventListener("user-interface-loaded-and-ready", this.onGameLoaded.bind(this)); // This has 1s delay.
+        Loading.runWhenLoaded(this.onGameLoaded.bind(this));
+        // window.addEventListener("user-interface-loaded-and-ready", this.onGameLoaded.bind(this)); // This has 1s delay.
     }
     onGameLoaded() {
         this.populateCacheFromStore();

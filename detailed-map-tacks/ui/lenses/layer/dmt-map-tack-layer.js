@@ -39,9 +39,6 @@ class MapTackLensLayer {
             // Highlight city center plots.
             const plotCoords = MapTackUtils.getCityCenterMapTackPlots() || [];
             this.highlightMapTackPlot(plotCoords);
-        } else if (event.detail?.prevLens == undefined && event.detail?.activeLens == "fxs-default-lens") {
-            // Default lens when transitioning from no lens, meaning the game is just started, enable map tack layer.
-            LensManager.enableLayer("dmt-map-tack-layer");
         }
     }
     highlightMapTackPlot(plotCoords = []) {
@@ -58,3 +55,7 @@ class MapTackLensLayer {
     }
 }
 LensManager.registerLensLayer("dmt-map-tack-layer", new MapTackLensLayer());
+// Enable map tack layer in default lens.
+const defaultLens = LensManager.lenses.get("fxs-default-lens");
+defaultLens.allowedLayers.add("dmt-map-tack-layer");
+defaultLens.activeLayers.add("dmt-map-tack-layer");

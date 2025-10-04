@@ -1,6 +1,7 @@
 
 import MapTackIconsManager, { MapTackIconRootUpdateEventName } from './dmt-map-tack-icons-manager.js';
 import { MAP_TACK_ELEMENT_NAME } from './dmt-map-tack-icons.js';
+import { L as LensManager } from '/core/ui/lenses/lens-manager.chunk.js';
 
 // Reuse plot-icons-root since it's already attached to the root-game.html.
 class DMT_PlotIconsRootDecorator {
@@ -33,7 +34,7 @@ class DMT_PlotIconsRootDecorator {
     afterDetach() {
     }
     // Create the MapTack icon on the desired root
-    updateIcon(mapTackStruct) {
+    updateIcon(mapTackStruct, isLayerEnabled) {
         const mapTackIcon = MapTackIconsManager.getMapTackIcon(mapTackStruct.x, mapTackStruct.y);
         let mapTackIconRoot = mapTackIcon?.Root;
         if (mapTackIconRoot == undefined) {
@@ -43,6 +44,7 @@ class DMT_PlotIconsRootDecorator {
             this.componentRoot.appendChild(mapTackIconRoot);
         }
         mapTackIconRoot.setAttribute('map-tack-list', JSON.stringify(mapTackStruct.mapTackList));
+        mapTackIconRoot.style.display = !isLayerEnabled ? 'none' : '';
     }
     removeIcon(mapTackStruct) {
         const mapTackIcon = MapTackIconsManager.getMapTackIcon(mapTackStruct.x, mapTackStruct.y);
@@ -53,10 +55,11 @@ class DMT_PlotIconsRootDecorator {
     }
     onUpdateMapTack(event) {
         const mapTackStructList = event.detail.mapTackStructList;
+        const isLayerEnabled = LensManager.isLayerEnabled("dmt-map-tack-layer");
         for (const mapTackStruct of mapTackStructList) {
             if (mapTackStruct.mapTackList && mapTackStruct.mapTackList.length > 0) {
                 // Have map tacks on this plot, update.
-                this.updateIcon(mapTackStruct);
+                this.updateIcon(mapTackStruct, isLayerEnabled);
             } else {
                 // No map tack on this plot, remove.
                 this.removeIcon(mapTackStruct);
