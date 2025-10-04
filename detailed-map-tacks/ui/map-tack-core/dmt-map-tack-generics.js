@@ -104,6 +104,14 @@ class MapTackGenericsSingleton {
             tags: ["AGELESS", "FULL_TILE"],
             adjacencyIds: []
         });
+        this.genericMapTacks.set("DMT_BUILDING", {
+            type: "DMT_BUILDING",
+            icon: `url(fs://game/city_buildingslist.png)`,
+            name: "LOC_CONSTRUCTIBLE_CLASS_NAME_BUILDING",
+            classType: ConstructibleClassType.BUILDING,
+            tags: ["AGELESS"],
+            adjacencyIds: []
+        });
         this.genericMapTacks.set("DMT_WONDER", {
             type: "DMT_WONDER",
             icon: `url(fs://game/city_wonderslist.png)`,

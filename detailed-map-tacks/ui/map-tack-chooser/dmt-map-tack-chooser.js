@@ -193,7 +193,8 @@ class MapTackChooser extends Panel {
                     && !this.excludedConstructibles.has(itemDef.ConstructibleType)
                     && !itemDef.ExistingDistrictOnly // Filter out walls.
                     && !(itemDef.Age != null && itemDef.Age != this.currentAge) // Filter out items that don't belong to this age.
-                    && !itemDef.Discovery) {
+                    && !itemDef.Discovery
+                    && !itemDef.Archaeology) {
                 filteredItemDefs.push(itemDef);
             }
         }

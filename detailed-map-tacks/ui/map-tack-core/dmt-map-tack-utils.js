@@ -20,6 +20,8 @@ class MapTackUtilsSingleton {
         this.usePlotDetailsCache = false;
         // Yield changes - BUILDING_PALACE => [{type: YIELD_FOOD, amount: 5}, {type: YIELD_HAPPINESS, amount: 5}, {type: YIELD_PRODUCTION, amount: 5}]
         this.constructibleYieldChanges = {};
+        // Adjacency yield types - BUILDING_MONUMENT => {YIELD_CULTURE: 1, YIELD_GOLD: 1}
+        this.constructibleAdjacencyYieldTypes = {};
         // Type tags - BUILDING_PALACE => [GREATWORK, AGELESS, PERSISTENT]
         this.constructibleTypeTags = {};
         // Free improvements - {
@@ -76,6 +78,16 @@ class MapTackUtilsSingleton {
                 amount: e.YieldChange
             });
             this.constructibleYieldChanges[e.ConstructibleType] = current;
+        }
+        // Find dominant adjacency yield types.
+        this.constructibleAdjacencyYieldTypes = {};
+        for (const e of GameInfo.Constructible_Adjacencies) {
+            const current = this.constructibleAdjacencyYieldTypes[e.ConstructibleType] || {};
+            const yieldType = GameInfo.Adjacency_YieldChanges.lookup(e.YieldChangeId)?.YieldType;
+            if (yieldType) {
+                current[yieldType] = (current[yieldType] || 0) + 1;
+            }
+            this.constructibleAdjacencyYieldTypes[e.ConstructibleType] = current;
         }
     }
     cacheFreeImprovements() {
@@ -587,6 +599,12 @@ class MapTackUtilsSingleton {
                 }
             }
             if (!hasDuplicateMax) {
+                return maxType;
+            }
+            // Fallback: If there's a tie, use adjacent yield type as tiebreaker.
+            const adjacencyYields = this.constructibleAdjacencyYieldTypes[type];
+            if (adjacencyYields && Object.keys(adjacencyYields).length > 0) {
+                maxType = Object.keys(adjacencyYields).reduce((a, b) => adjacencyYields[a] > adjacencyYields[b] ? a : b);
                 return maxType;
             }
         }
