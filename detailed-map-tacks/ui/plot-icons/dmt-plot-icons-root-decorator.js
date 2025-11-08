@@ -37,7 +37,6 @@ class DMT_PlotIconsRootDecorator {
             this.componentRoot.appendChild(mapTackIconRoot);
         }
         mapTackIconRoot.setAttribute('map-tack-list', JSON.stringify(mapTackStruct.mapTackList));
-        mapTackIconRoot.style.display = !isLayerEnabled ? 'none' : '';
     }
     removeIcon(mapTackStruct) {
         const mapTackIcon = MapTackIconsManager.getMapTackIcon(mapTackStruct.x, mapTackStruct.y);
