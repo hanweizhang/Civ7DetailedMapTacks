@@ -9,16 +9,17 @@ class MapTackLensLayer {
     constructor() {
     }
     initLayer() {
+        document.body.classList.add("dmt-layer-hidden");
         window.addEventListener('layer-hotkey', this.onLayerHotkey.bind(this));
         window.addEventListener(LensActivationEventName, this.onActiveLensChanged.bind(this));
 
         this.mapTackModelGroup = WorldUI.createModelGroup("MapTackModelGroup");
     }
     applyLayer() {
-        window.dispatchEvent(new Event("ui-show-map-tack-icons"));
+        document.body.classList.remove("dmt-layer-hidden");
     }
     removeLayer() {
-        window.dispatchEvent(new Event("ui-hide-map-tack-icons"));
+        document.body.classList.add("dmt-layer-hidden");
     }
     onLayerHotkey(hotkey) {
         if (hotkey.detail?.name == "toggle-map-tack-layer") {

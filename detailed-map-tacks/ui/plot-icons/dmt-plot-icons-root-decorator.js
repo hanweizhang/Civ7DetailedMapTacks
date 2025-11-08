@@ -10,9 +10,6 @@ class DMT_PlotIconsRootDecorator {
         this.component = component;
         this.componentRoot = component.Root;
         this.updateMapTackListener = this.onUpdateMapTack.bind(this);
-        this.globalHidden = false;
-        this.globalHideListener = this.onGlobalHide.bind(this);
-        this.globalShowListener = this.onGlobalShow.bind(this);
     }
 
     beforeAttach() {
@@ -20,15 +17,11 @@ class DMT_PlotIconsRootDecorator {
 
     afterAttach() {
         this.componentRoot.addEventListener(MapTackIconRootUpdateEventName, this.updateMapTackListener);
-        window.addEventListener("ui-hide-map-tack-icons", this.globalHideListener);
-        window.addEventListener("ui-show-map-tack-icons", this.globalShowListener);
         MapTackIconsManager.rootAttached(this.componentRoot);
     }
 
     beforeDetach() {
         this.componentRoot.removeEventListener(MapTackIconRootUpdateEventName, this.updateMapTackListener);
-        window.removeEventListener("ui-hide-map-tack-icons", this.globalHideListener);
-        window.removeEventListener("ui-show-map-tack-icons", this.globalShowListener);
     }
 
     afterDetach() {
@@ -65,20 +58,6 @@ class DMT_PlotIconsRootDecorator {
                 this.removeIcon(mapTackStruct);
             }
         }
-    }
-    onGlobalHide() {
-        const mapTackIconRoots = this.componentRoot.querySelectorAll(MAP_TACK_ELEMENT_NAME);
-        mapTackIconRoots.forEach((mapTackIconRoot) => {
-            mapTackIconRoot.style.display = 'none';
-        });
-        this.globalHidden = true;
-    }
-    onGlobalShow() {
-        const mapTackIconRoots = this.componentRoot.querySelectorAll(MAP_TACK_ELEMENT_NAME);
-        mapTackIconRoots.forEach((mapTackIconRoot) => {
-            mapTackIconRoot.style.display = '';
-        });
-        this.globalHidden = false;
     }
 }
 Controls.decorate('plot-icons-root', (component) => new DMT_PlotIconsRootDecorator(component));
