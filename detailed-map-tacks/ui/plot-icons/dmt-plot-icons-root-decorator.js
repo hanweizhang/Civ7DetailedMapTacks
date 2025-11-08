@@ -27,7 +27,7 @@ class DMT_PlotIconsRootDecorator {
     afterDetach() {
     }
     // Create the MapTack icon on the desired root
-    updateIcon(mapTackStruct, isLayerEnabled) {
+    updateIcon(mapTackStruct) {
         const mapTackIcon = MapTackIconsManager.getMapTackIcon(mapTackStruct.x, mapTackStruct.y);
         let mapTackIconRoot = mapTackIcon?.Root;
         if (mapTackIconRoot == undefined) {
@@ -47,11 +47,10 @@ class DMT_PlotIconsRootDecorator {
     }
     onUpdateMapTack(event) {
         const mapTackStructList = event.detail.mapTackStructList;
-        const isLayerEnabled = LensManager.isLayerEnabled("dmt-map-tack-layer");
         for (const mapTackStruct of mapTackStructList) {
             if (mapTackStruct.mapTackList && mapTackStruct.mapTackList.length > 0) {
                 // Have map tacks on this plot, update.
-                this.updateIcon(mapTackStruct, isLayerEnabled);
+                this.updateIcon(mapTackStruct);
             } else {
                 // No map tack on this plot, remove.
                 this.removeIcon(mapTackStruct);
