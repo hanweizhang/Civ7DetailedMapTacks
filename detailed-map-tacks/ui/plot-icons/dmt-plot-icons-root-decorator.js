@@ -1,7 +1,6 @@
 
 import MapTackIconsManager, { MapTackIconRootUpdateEventName } from './dmt-map-tack-icons-manager.js';
 import { MAP_TACK_ELEMENT_NAME } from './dmt-map-tack-icons.js';
-import { L as LensManager } from '/core/ui/lenses/lens-manager.chunk.js';
 
 // Reuse plot-icons-root since it's already attached to the root-game.html.
 class DMT_PlotIconsRootDecorator {
