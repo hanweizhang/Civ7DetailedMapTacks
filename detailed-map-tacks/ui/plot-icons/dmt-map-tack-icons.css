@@ -1,7 +1,11 @@
 dmt-map-tack-icons {
-	pointer-events: none;
-	position: absolute;
+    pointer-events: none;
+    position: absolute;
     z-index: 1;
+}
+
+.dmt-layer-hidden dmt-map-tack-icons {
+    display: none;
 }
 
 .map-tack-icon-container {

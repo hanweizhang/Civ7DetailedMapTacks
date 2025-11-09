@@ -1,21 +1,25 @@
 import MapTackUtils from '../../map-tack-core/dmt-map-tack-utils.js';
 import { L as LensManager, a as LensActivationEventName } from '/core/ui/lenses/lens-manager.chunk.js';
 import { BuildingPlacementManager } from '/base-standard/ui/building-placement/building-placement-manager.js';
+// guarantee import order for patching
+import '/base-standard/ui/lenses/lens/default-lens.js';
+import '/base-standard/ui/lenses/lens/settler-lens.js';
 
 class MapTackLensLayer {
     constructor() {
     }
     initLayer() {
+        document.body.classList.add("dmt-layer-hidden");
         window.addEventListener('layer-hotkey', this.onLayerHotkey.bind(this));
         window.addEventListener(LensActivationEventName, this.onActiveLensChanged.bind(this));
 
         this.mapTackModelGroup = WorldUI.createModelGroup("MapTackModelGroup");
     }
     applyLayer() {
-        window.dispatchEvent(new Event("ui-show-map-tack-icons"));
+        document.body.classList.remove("dmt-layer-hidden");
     }
     removeLayer() {
-        window.dispatchEvent(new Event("ui-hide-map-tack-icons"));
+        document.body.classList.add("dmt-layer-hidden");
     }
     onLayerHotkey(hotkey) {
         if (hotkey.detail?.name == "toggle-map-tack-layer") {
@@ -53,9 +57,16 @@ class MapTackLensLayer {
     getKey(x, y) {
         return `${x}-${y}`;
     }
+    getOptionName() {
+        return "dmtShowMapTacks";
+    }
 }
-LensManager.registerLensLayer("dmt-map-tack-layer", new MapTackLensLayer());
-// Enable map tack layer in default lens.
+// Enable map tack layer in default lens (configurable).
 const defaultLens = LensManager.lenses.get("fxs-default-lens");
 defaultLens.allowedLayers.add("dmt-map-tack-layer");
-defaultLens.activeLayers.add("dmt-map-tack-layer");
+// if layer is not configured, enable it by default
+const instance = new MapTackLensLayer();
+const option = UI.getOption("user", "Gameplay", instance.getOptionName());
+if (option == null) UI.setOption("user", "Gameplay", instance.getOptionName(), 1);
+// register layer
+LensManager.registerLensLayer("dmt-map-tack-layer", instance);
