@@ -297,6 +297,13 @@ class MapTackValidatorSingleton {
         if (hasRequirement) {
             return false;
         }
+        if (MapTackGenerics.isGenericMapTack(mapTackType) && MapTackGenerics.getValidTerrains(mapTackType).has(terrainType)) {
+            if (terrainType == "TERRAIN_COAST" || terrainType == "TERRAIN_NAVIGABLE_RIVER") {
+                this.waterPlacement = true;
+            } else if (terrainType == "TERRAIN_MOUNTAIN") {
+                this.mountainPlacement = true;
+            }
+        }
         // return true by default.
         return true;
     }

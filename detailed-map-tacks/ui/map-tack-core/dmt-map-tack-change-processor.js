@@ -1,4 +1,5 @@
 
+import MapTackGenerics from './dmt-map-tack-generics.js';
 import MapTackStore from './dmt-map-tack-store.js';
 import MapTackUtils from './dmt-map-tack-utils.js';
 import MapTackValidator from './dmt-map-tack-validator.js';
@@ -48,9 +49,42 @@ class MapTackChangeProcessorSingleton {
             type: GameInfo.Constructibles.lookup(data.constructibleType)?.ConstructibleType
         };
         MapTackStore.removeMapTack(mapTackData);
+        this.clearFulfilledGenericMapTack(data.location.x, data.location.y, mapTackData.type);
         this.onPlotDetailsUpdated(data.location.x, data.location.y);
         if (MapTackUtils.isCityCenter(mapTackData.type)) {
             engine.trigger("CityCenterMapTackUpdated");
+        }
+    }
+
+    clearFulfilledGenericMapTack(x, y, builtType) {
+        if (!builtType || MapTackUtils.isSlotless(builtType)) {
+            return;
+        }
+        const genericTacks = MapTackStore.retrieveMapTacks(x, y)
+            .filter(tack => MapTackGenerics.isGenericMapTack(tack.type) && !GameInfo.Constructibles.lookup(tack.type));
+        if (genericTacks.length === 0) {
+            return;
+        }
+        let finished = null;
+        let finishedSize = Infinity;
+        for (const tack of genericTacks) {
+            const members = MapTackGenerics.getFulfillingConstructibles(tack.type);
+            if (!members.has(builtType)) {
+                continue;
+            }
+            if (MapTackGenerics.isGenericUniqueQuarter(tack.type)) {
+                const present = new Set(MapTackUtils.getConstructiblesAtPlot(x, y).map(c => c.type));
+                if (![...members].every(type => present.has(type))) {
+                    continue;
+                }
+            }
+            if (members.size < finishedSize) {
+                finished = tack;
+                finishedSize = members.size;
+            }
+        }
+        if (finished) {
+            MapTackStore.removeMapTack({ x, y, type: finished.type });
         }
     }
     onConstructibleRemoved(data) {

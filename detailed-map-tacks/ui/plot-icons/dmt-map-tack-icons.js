@@ -81,6 +81,7 @@ class MapTackIcons extends Component {
         iconWrapper.setAttribute("data-tooltip-content", this.createItemTooltip(mapTackData.type));
         iconWrapper.setAttribute("data-audio-press-ref", "data-audio-select-press");
         iconWrapper.addEventListener("action-activate", () => this.mapTackClickListener(mapTackData));
+        iconWrapper.addEventListener("engine-input", (event) => this.mapTackRightClickListener(event, mapTackData));
         if (MapTackUtils.isCityCenter(mapTackData.type)) {
             this.clearBorderOverlayGroup = WorldUI.createOverlayGroup("ClearCityCenterBorderOverlayGroup", OVERLAY_PRIORITY.CULTURE_BORDER);
             iconWrapper.addEventListener("mouseenter", () => this.mouseEnterListener());
@@ -163,9 +164,21 @@ class MapTackIcons extends Component {
         if (InterfaceMode.getCurrent() == "DMT_INTERFACEMODE_MAP_TACK_CHOOSER") {
             // If the chooser is open, delete the tack.
             engine.trigger("RemoveMapTackRequest", mapTackData);
-        } else {
-            // TODO: Come up with a better quicker deletion solution.
         }
+    }
+    mapTackRightClickListener(event, mapTackData) {
+        if (event.detail?.name != "mousebutton-right") {
+            return;
+        }
+        const status = event.detail?.status;
+        if (status != InputActionStatuses.START && status != InputActionStatuses.FINISH) {
+            return;
+        }
+        if (status == InputActionStatuses.FINISH) {
+            engine.trigger("RemoveMapTackRequest", mapTackData);
+        }
+        event.preventDefault();
+        event.stopPropagation();
     }
     onAttributeChanged(name, _oldValue, _newValue) {
         switch (name) {

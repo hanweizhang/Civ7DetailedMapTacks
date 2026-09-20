@@ -1,6 +1,30 @@
 import { ConstructibleClassType, ExcludedItems } from "./dmt-map-tack-constants.js";
 import TraitModifier from "./modifier/dmt-trait-modifier.js";
 
+const CLASS_WIDE_FULFILLMENT = new Map([
+    ["DMT_BUILDING", "BUILDING"],
+    ["DMT_WONDER", "WONDER"],
+    ["DMT_IMPROVEMENT", "IMPROVEMENT"],
+]);
+const YIELD_TAG_TYPES = new Map([
+    ["FOOD", "YIELD_FOOD"],
+    ["PRODUCTION", "YIELD_PRODUCTION"],
+    ["GOLD", "YIELD_GOLD"],
+    ["SCIENCE", "YIELD_SCIENCE"],
+    ["CULTURE", "YIELD_CULTURE"],
+    ["HAPPINESS", "YIELD_HAPPINESS"],
+    ["DIPLOMACY", "YIELD_DIPLOMACY"],
+]);
+
+function isUniqueConstructible(constructibleType) {
+    for (const e of GameInfo.TypeTags) {
+        if (e.Type == constructibleType && e.Tag == "UNIQUE") {
+            return true;
+        }
+    }
+    return false;
+}
+
 class MapTackGenericsSingleton {
     /**
      * Singleton accessor
@@ -24,6 +48,10 @@ class MapTackGenericsSingleton {
         this.populateGenericBuildings();
 
         this.matchingCache = {};
+        this.fulfillingCache = {};
+        this.yieldPayingCache = {};
+        this.exampleFallbackCache = {};
+        this.terrainCache = {};
 
         engine.whenReady.then(() => { this.onReady(); });
     }
@@ -191,7 +219,87 @@ class MapTackGenericsSingleton {
                 }
             }
         }
-        return this.matchingCache[type] || [];
+        const cached = this.matchingCache[type];
+        if (cached && cached.length > 0) {
+            return cached;
+        }
+        if (!this.exampleFallbackCache[type]) {
+            this.exampleFallbackCache[type] = this.yieldPayingConstructibles(type).filter(t => !isUniqueConstructible(t));
+        }
+        return this.exampleFallbackCache[type];
+    }
+
+    yieldPayingConstructibles(type) {
+        if (this.yieldPayingCache[type]) {
+            return this.yieldPayingCache[type];
+        }
+        const genericMapTack = this.genericMapTacks.get(type);
+        const yieldTag = (genericMapTack?.tags || []).find(tag => YIELD_TAG_TYPES.has(tag));
+        const yieldType = yieldTag && YIELD_TAG_TYPES.get(yieldTag);
+        const found = [];
+        if (yieldType) {
+            const age = GameInfo.Ages.lookup(Game.age)?.AgeType;
+            const paying = new Set();
+            for (const e of GameInfo.Constructible_YieldChanges) {
+                if (e.YieldType == yieldType && e.YieldChange > 0) {
+                    paying.add(e.ConstructibleType);
+                }
+            }
+            for (const e of GameInfo.Constructibles) {
+                if (e.ConstructibleClass == ConstructibleClassType.BUILDING && e.Age == age && paying.has(e.ConstructibleType)) {
+                    found.push(e.ConstructibleType);
+                }
+            }
+        }
+        this.yieldPayingCache[type] = found;
+        return found;
+    }
+
+    getFulfillingConstructibles(type) {
+        if (this.fulfillingCache[type]) {
+            return this.fulfillingCache[type];
+        }
+        const genericMapTack = this.genericMapTacks.get(type);
+        let found = new Set();
+        if (genericMapTack) {
+            if (MapTackGenerics.isGenericUniqueQuarter(type)) {
+                found = new Set(this.getMatchingConstructibles(type));
+            } else {
+                const wantedClass = CLASS_WIDE_FULFILLMENT.get(type);
+                if (wantedClass) {
+                    const age = GameInfo.Ages.lookup(Game.age)?.AgeType;
+                    for (const e of GameInfo.Constructibles) {
+                        if (e.ConstructibleClass == wantedClass && (!e.Age || e.Age == age)) {
+                            found.add(e.ConstructibleType);
+                        }
+                    }
+                } else {
+                    found = new Set(this.matchingCache[type] || []);
+                    if (found.size == 0) {
+                        found = new Set(this.yieldPayingConstructibles(type));
+                    }
+                }
+            }
+        }
+        this.fulfillingCache[type] = found;
+        return found;
+    }
+
+    getValidTerrains(type) {
+        if (this.terrainCache[type]) {
+            return this.terrainCache[type];
+        }
+        const found = new Set();
+        const memberTypes = this.getFulfillingConstructibles(type);
+        if (memberTypes.size > 0) {
+            for (const e of GameInfo.Constructible_ValidTerrains) {
+                if (memberTypes.has(e.ConstructibleType)) {
+                    found.add(e.TerrainType);
+                }
+            }
+        }
+        this.terrainCache[type] = found;
+        return found;
     }
     getTooltipString(type) {
         const matchingItems = this.getMatchingConstructibles(type);
