@@ -1,5 +1,6 @@
 import { Audio } from '/core/ui/audio-base/audio-support.js';
 import ChoosePlotInterfaceMode from '/base-standard/ui/interface-modes/interface-mode-choose-plot.js';
+import { ContextManager } from '/core/ui/context-manager/context-manager.js';
 import { InputHandlerState } from '/core/ui/input/input-support.js';
 import { InterfaceMode } from '/core/ui/interface-modes/interface-modes.js';
 import { MustGetElement } from '/core/ui/utilities/utilities-dom.js';
@@ -73,13 +74,19 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         window.addEventListener(PlotCursorUpdatedEventName, this.plotCursorUpdatedListener);
         engine.on("UpdateFrame", this.updateFrameListener);
         WorldUI.setUnitVisibility(false);
-        Input.setActiveContext(InputContext.World);
         // Enable settler lens when placing city center map tack.
         if (this.isCityCenter) {
             LensManager.enableLayer("fxs-appeal-layer");
             LensManager.enableLayer("fxs-settlement-recommendations-layer");
             LensManager.enableLayer("fxs-random-events-layer");
+            // fxs-appeal-layer pushes panel-settler-legend, which docks into a slot that only
+            // exists in the game's world harness, so in ours it lands centered in .fxs-popups.
+            // Drop it: we only want the appeal plot overlay, and while the panel is mounted it
+            // eats the cancel input and switches back to fxs-default-lens.
+            ContextManager.pop("panel-settler-legend");
         }
+        // Set after the lens layers, panel-settler-legend changes the input context while mounted.
+        Input.setActiveContext(InputContext.World);
         MapTackUtils.togglePlotDetailsCache(true);
     }
     transitionFrom(oldMode, newMode) {
