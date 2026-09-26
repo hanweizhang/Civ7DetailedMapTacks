@@ -1,3 +1,4 @@
+import { getGlobalParamNumber } from '/core/ui/utilities/utilities-data.js';
 
 import MapTackGenerics from './dmt-map-tack-generics.js';
 import MapTackStore from './dmt-map-tack-store.js';
@@ -295,12 +296,16 @@ class MapTackUtilsSingleton {
                 const featureDef = GameInfo.Features.lookup(featureIndex);
                 details["feature"] = featureDef?.FeatureType;
             }
+            // Appeal
+            details["appeal"] = GameplayMap.getAppeal(x, y);
             // Resource
             const resourceIndex = GameplayMap.getResourceType(x, y);
             if (resourceIndex != ResourceTypes.NO_RESOURCE) {
                 const resourceDef = GameInfo.Resources.lookup(resourceIndex);
                 details["resource"] = resourceDef?.ResourceType;
             }
+            // Owner
+            details["owner"] = Players.get(GameplayMap.getOwner(x, y));
             // Constructibles
             details["constructibles"] = [];
             const canOverrideImprovement = validMapTacks.some(m =>
@@ -526,15 +531,8 @@ class MapTackUtilsSingleton {
         return GameplayMap.isAdjacentToLand(x, y);
     }
     isAppealing(x, y) {
-        let adjacentAppeal = 0;
-        const adjacentPlots = this.getAdjacentPlots(x, y);
-        for (const { plot } of adjacentPlots) {
-            const adjTerrainIndex = GameplayMap.getTerrainType(plot.x, plot.y);
-            adjacentAppeal += GameInfo.Terrains.lookup(adjTerrainIndex)?.Appeal ?? 0;
-            const adjFeatureIndex = GameplayMap.getFeatureType(plot.x, plot.y);
-            adjacentAppeal += GameInfo.Features.lookup(adjFeatureIndex)?.Appeal ?? 0;
-        }
-        return adjacentAppeal >= 3;
+        return GameplayMap.getAppeal(x, y) >=
+            getGlobalParamNumber("APPEAL_FOR_HAPPINESS_TILE_YIELD");
     }
     getQuarterType(constructibles) {
         if (constructibles) {

@@ -16,6 +16,14 @@ class MapTackValidatorSingleton {
         }
         return MapTackValidatorSingleton.singletonInstance;
     }
+    // validOwner prevents placement on plots owned by other players
+    _validOwner = -1;
+    get validOwner() {
+        return this._validOwner;
+    }
+    set validOwner(id) {
+        this._validOwner = id;
+    }
     constructor() {
         // ConstructibleType => [ biomeType, ... ]
         this.invalidAjacentBiomes = {};
@@ -95,6 +103,14 @@ class MapTackValidatorSingleton {
                     isValid = isValid && false;
                     preventPlacement = preventPlacement || true;
                     reasons.add(Locale.compose("LOC_DMT_INVALID_REASON_DUPLICATE"));
+                }
+            }
+            // 4. Unavailable to the current valid owner.
+            if (this.validOwner != -1) {
+                const plotOwner = GameplayMap.getOwner(x, y);
+                if (plotOwner != -1 && plotOwner != this.validOwner) {
+                    isValid = isValid && false;
+                    reasons.add(Locale.compose("LOC_DMT_INVALID_REASON_OTHER_OWNER"));
                 }
             }
             // END - Conditions that prevent placing map tacks.

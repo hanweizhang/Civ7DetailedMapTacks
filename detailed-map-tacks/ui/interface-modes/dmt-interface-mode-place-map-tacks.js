@@ -71,6 +71,7 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
         // Set the building placement cursor
         UI.setCursorByType(UIHTMLCursorTypes.Place);
         this.lastHoveredPlot = -1;
+        MapTackValidator.validOwner = GameContext.localPlayerID;
         window.addEventListener(PlotCursorUpdatedEventName, this.plotCursorUpdatedListener);
         engine.on("UpdateFrame", this.updateFrameListener);
         WorldUI.setUnitVisibility(false);
@@ -121,6 +122,10 @@ class PlaceMapTacksInterfaceMode extends ChoosePlotInterfaceMode {
             const plotIndex = GameplayMap.getIndexFromLocation(plot);
             if (plotIndex != this.lastHoveredPlot) {
                 this.lastHoveredPlot = plotIndex;
+                const plot = GameplayMap.getLocationFromIndex(plotIndex);
+                const owner = GameplayMap.getOwner(plot.x, plot.y);
+                MapTackValidator.validOwner =
+                    owner == -1 ? GameContext.localPlayerID : owner;
                 if (this.isGenericImprovement) {
                     const improvementType = MapTackUtils.getFreeImprovementAtPlot(plot.x, plot.y);
                     if (improvementType) {

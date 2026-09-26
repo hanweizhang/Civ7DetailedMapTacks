@@ -57,6 +57,9 @@
         <Row Tag="LOC_DMT_INVALID_REASON_DUPLICATE">
             <Text>This map tack already exists on this plot.</Text>
         </Row>
+        <Row Tag="LOC_DMT_INVALID_REASON_OTHER_OWNER">
+            <Text>Owned by another Civilization.</Text>
+        </Row>
         <Row Tag="LOC_DMT_INVALID_REASON_CANNOT_PLACE_ON_X">
             <Text>Cannot be placed on {1_Name}.</Text>
         </Row>
