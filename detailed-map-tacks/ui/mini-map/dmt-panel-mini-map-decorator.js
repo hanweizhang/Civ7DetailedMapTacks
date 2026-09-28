@@ -29,6 +29,7 @@ export class DMT_PanelMiniMapDecorator {
 
     createMinimapMapTacksButton() {
         const miniMapButton = document.createElement("fxs-activatable");
+        miniMapButton.setAttribute("tabindex", "-1");
         miniMapButton.classList.add("mini-map__map-tacks-button", "mx-1");
         miniMapButton.setAttribute('data-tooltip-content', Locale.compose("LOC_DMT_MAP_TACKS"));
         miniMapButton.addEventListener('action-activate', () => {

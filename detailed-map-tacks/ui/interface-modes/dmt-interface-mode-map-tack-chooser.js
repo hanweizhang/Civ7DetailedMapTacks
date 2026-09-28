@@ -1,5 +1,6 @@
 import { InputHandlerState } from '/core/ui/input/input-support.js';
 import { InterfaceMode } from '/core/ui/interface-modes/interface-modes.js';
+import { FocusManager } from '/core/ui-next/services/focus-manager.js';
 import LensManager from '/core/ui/lenses/lens-manager.js';
 /**
  * Handler for DMT_INTERFACEMODE_MAP_TACK_CHOOSER.
@@ -26,11 +27,25 @@ class MapTackChooserInterfaceMode {
             inputEvent.preventDefault();
             return InputHandlerState.Handled;
         }
-        // Block mouse-left in plot click to exit.
-        if (inputEvent.detail.name == 'mousebutton-left' || inputEvent.detail.name == 'accept') {
+        // Keep world-map clicks from closing the chooser. Controller/keyboard "accept"
+        // must remain active when focus is inside the chooser so fxs-activatable can
+        // dispatch its native action-activate event.
+        if (inputEvent.detail.name == 'mousebutton-left') {
             inputEvent.stopPropagation();
             inputEvent.preventDefault();
             return InputHandlerState.Handled;
+        }
+        if (inputEvent.detail.name == 'accept') {
+            const currentFocus = FocusManager.get().currentFocus();
+            const chooserRoot = document.querySelector('.map-tack-chooser');
+            const chooserHasFocus = chooserRoot instanceof HTMLElement
+                && currentFocus instanceof HTMLElement
+                && chooserRoot.contains(currentFocus);
+            if (!chooserHasFocus) {
+                inputEvent.stopPropagation();
+                inputEvent.preventDefault();
+                return InputHandlerState.Handled;
+            }
         }
         return InputHandlerState.Active;
     }

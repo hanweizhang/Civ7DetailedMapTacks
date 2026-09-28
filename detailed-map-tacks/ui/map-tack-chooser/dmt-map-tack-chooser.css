@@ -40,3 +40,11 @@
     flex-direction: row;
 	margin-top: 0.2222222222rem;
 }
+
+.map-tack-icon-wrapper.dmt-gamepad-focus {
+    position: relative;
+    z-index: 10;
+    outline: 0.1666666667rem solid var(--default-color-secondary);
+    outline-offset: 0.1111111111rem;
+    transform: scale(1.08);
+}

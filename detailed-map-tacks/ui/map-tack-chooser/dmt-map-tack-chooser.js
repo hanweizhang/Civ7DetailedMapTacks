@@ -1,11 +1,15 @@
 import Panel from '/core/ui/panel-support.js';
+import { Navigation } from '/core/ui/input/navigation-support.js';
+import { FocusManager } from '/core/ui-next/services/focus-manager.js';
+import PlotCursor from '/core/ui/input/plot-cursor.js';
 import { InterfaceMode, InterfaceModeChangedEventName } from '/core/ui/interface-modes/interface-modes.js';
 import { MustGetElement } from '/core/ui/utilities/utilities-dom.js';
 import MapTackUIUtils from '../map-tack-core/dmt-map-tack-ui-utils.js';
 import MapTackUtils from '../map-tack-core/dmt-map-tack-utils.js';
-import { ConstructibleClassType, ExcludedItems, YieldTypes } from '../map-tack-core/dmt-map-tack-constants.js';
+import { ConstructibleClassType, ExcludedItems, isGamepadDevice, YieldTypes } from '../map-tack-core/dmt-map-tack-constants.js';
 import TraitModifier from '../map-tack-core/modifier/dmt-trait-modifier.js';
 import MapTackGenerics from '../map-tack-core/dmt-map-tack-generics.js';
+import MapTackStore from '../map-tack-core/dmt-map-tack-store.js';
 // Cache constructible icons for faster panel load.
 Loading.runWhenFinished(() => {
     for (const c of GameInfo.Constructibles) {
@@ -37,6 +41,8 @@ class MapTackChooser extends Panel {
         this.animateInType = this.animateOutType = 5 /* AnchorType.RelativeToLeft */;
         this.enableOpenSound = true;
         this.enableCloseSound = true;
+        this.lastFocusedMapTack = null;
+        this.engineInputListener = this.onEngineInput.bind(this);
     }
     onInitialize() {
         super.onInitialize();
@@ -59,17 +65,201 @@ class MapTackChooser extends Panel {
         super.onAttach();
         window.addEventListener(InterfaceModeChangedEventName, this.interfaceModeChangedListener);
         this.panel.addEventListener('subsystem-frame-close', this.requestClose);
+        window.addEventListener('engine-input', this.engineInputListener, true);
+        engine.on("input-source-changed", this.onActiveDeviceTypeChanged, this);
     }
     onDetach() {
         window.removeEventListener(InterfaceModeChangedEventName, this.interfaceModeChangedListener);
         this.panel.removeEventListener('subsystem-frame-close', this.requestClose);
+        window.removeEventListener('engine-input', this.engineInputListener, true);
+        engine.off("input-source-changed", this.onActiveDeviceTypeChanged, this);
         super.onDetach();
     }
     onInterfaceModeChanged() {
         if (InterfaceMode.getCurrent() == "DMT_INTERFACEMODE_MAP_TACK_CHOOSER") {
             this.setHidden(false);
+            if (isGamepadDevice()) {
+                requestAnimationFrame(() => this.focusMapTackChooser());
+            }
         } else {
+            const currentFocus = FocusManager.get().currentFocus();
+            if (currentFocus instanceof HTMLElement && this.Root.contains(currentFocus)) {
+                FocusManager.get().clearFocus(currentFocus);
+            }
+            this.clearGamepadFocusVisual();
             this.setHidden(true);
+        }
+    }
+    onActiveDeviceTypeChanged(deviceType) {
+        if (isGamepadDevice(deviceType)
+                && InterfaceMode.getCurrent() == "DMT_INTERFACEMODE_MAP_TACK_CHOOSER") {
+            requestAnimationFrame(() => this.focusMapTackChooser());
+        }
+    }
+    onReceiveFocus() {
+        super.onReceiveFocus();
+        this.focusMapTackChooser();
+    }
+    focusMapTackChooser() {
+        if (!isGamepadDevice()
+                || InterfaceMode.getCurrent() != "DMT_INTERFACEMODE_MAP_TACK_CHOOSER") {
+            return;
+        }
+        const currentFocus = FocusManager.get().currentFocus();
+        if (currentFocus instanceof HTMLElement && this.Root.contains(currentFocus)) {
+            this.setGamepadFocus(currentFocus);
+            return;
+        }
+        if (this.lastFocusedMapTack instanceof HTMLElement
+                && this.lastFocusedMapTack.isConnected
+                && Navigation.isFocusable(this.lastFocusedMapTack)) {
+            this.setGamepadFocus(this.lastFocusedMapTack);
+            return;
+        }
+        const firstFocusable = Navigation.getFirstFocusableElement(this.Root, {
+            isDisableFocusAllowed: true,
+            direction: InputNavigationAction.NONE,
+        });
+        if (firstFocusable) {
+            this.setGamepadFocus(firstFocusable);
+        }
+    }
+    getMapTackButtons() {
+        return Array.from(this.Root.querySelectorAll('.map-tack-icon-wrapper'))
+            .filter(element => element instanceof HTMLElement && element.isConnected);
+    }
+    clearGamepadFocusVisual() {
+        for (const element of this.getMapTackButtons()) {
+            element.classList.remove('dmt-gamepad-focus');
+        }
+    }
+    setGamepadFocus(element) {
+        if (!(element instanceof HTMLElement)) {
+            return;
+        }
+        this.clearGamepadFocusVisual();
+        element.classList.add('dmt-gamepad-focus');
+        this.lastFocusedMapTack = element;
+        FocusManager.get().setFocus(element);
+        if (typeof element.scrollIntoView == 'function') {
+            try {
+                element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            } catch (_error) {
+                element.scrollIntoView();
+            }
+        }
+    }
+    moveGamepadFocus(direction) {
+        const buttons = this.getMapTackButtons();
+        if (buttons.length == 0) {
+            return;
+        }
+
+        const focused = FocusManager.get().currentFocus();
+        let current = focused instanceof HTMLElement && buttons.includes(focused)
+            ? focused
+            : this.lastFocusedMapTack;
+        if (!(current instanceof HTMLElement) || !buttons.includes(current)) {
+            this.setGamepadFocus(buttons[0]);
+            return;
+        }
+
+        const currentRect = current.getBoundingClientRect();
+        const currentX = currentRect.left + currentRect.width / 2;
+        const currentY = currentRect.top + currentRect.height / 2;
+        let best = null;
+        let bestScore = Infinity;
+
+        for (const candidate of buttons) {
+            if (candidate == current) {
+                continue;
+            }
+            const rect = candidate.getBoundingClientRect();
+            const dx = rect.left + rect.width / 2 - currentX;
+            const dy = rect.top + rect.height / 2 - currentY;
+
+            let primary = 0;
+            let secondary = 0;
+            if (direction == 'left' && dx < -1) {
+                primary = -dx;
+                secondary = Math.abs(dy);
+            } else if (direction == 'right' && dx > 1) {
+                primary = dx;
+                secondary = Math.abs(dy);
+            } else if (direction == 'up' && dy < -1) {
+                primary = -dy;
+                secondary = Math.abs(dx);
+            } else if (direction == 'down' && dy > 1) {
+                primary = dy;
+                secondary = Math.abs(dx);
+            } else {
+                continue;
+            }
+
+            const score = primary + secondary * 4;
+            if (score < bestScore) {
+                bestScore = score;
+                best = candidate;
+            }
+        }
+
+        if (best) {
+            this.setGamepadFocus(best);
+        }
+    }
+    removeMapTackAtCursor() {
+        const plot = PlotCursor.plotCursorCoords;
+        if (!plot) {
+            return false;
+        }
+        const mapTacks = MapTackStore.retrieveMapTacks(plot.x, plot.y);
+        if (mapTacks.length == 0) {
+            return false;
+        }
+
+        const preferredType = this.lastFocusedMapTack?.getAttribute('data-map-tack-type');
+        const target = mapTacks.find(mapTack => mapTack.type == preferredType)
+            || mapTacks[mapTacks.length - 1];
+        engine.trigger('RemoveMapTackRequest', target);
+        return true;
+    }
+    onEngineInput(inputEvent) {
+        if (inputEvent?.detail?.status != InputActionStatuses.FINISH) {
+            return;
+        }
+
+        const mode = InterfaceMode.getCurrent();
+        const isChooser = mode == 'DMT_INTERFACEMODE_MAP_TACK_CHOOSER';
+        const isPlacement = mode == 'DMT_INTERFACEMODE_PLACE_MAP_TACKS';
+        if (!isChooser && !isPlacement) {
+            return;
+        }
+
+        const name = inputEvent.detail.name;
+        if (isChooser) {
+            const directionByAction = {
+                'nav-up': 'up',
+                'toggle-diplo': 'up',
+                'nav-down': 'down',
+                'toggle-quest': 'down',
+                'nav-left': 'left',
+                'toggle-chat': 'left',
+                'nav-right': 'right',
+                'navigate-yields': 'right',
+            };
+            const direction = directionByAction[name];
+            if (direction) {
+                this.moveGamepadFocus(direction);
+                inputEvent.preventDefault();
+                inputEvent.stopPropagation();
+                return;
+            }
+        }
+
+        if (name == 'notification' || name == 'swap-plot-selection' || name == 'shell-action-1') {
+            this.removeMapTackAtCursor();
+            inputEvent.preventDefault();
+            inputEvent.stopPropagation();
         }
     }
     onRequestClose() {
@@ -270,11 +460,16 @@ class MapTackChooser extends Panel {
     }
     createItemUI(type, classType, tooltip) {
         const iconWrapper = document.createElement("fxs-activatable");
+        iconWrapper.setAttribute("tabindex", "-1");
+        iconWrapper.setAttribute("data-map-tack-type", type);
         const iconStyles = MapTackUIUtils.getMapTackIconStyles(type, classType);
         iconWrapper.classList.add("m-1\\.5", "size-12", "map-tack-icon-wrapper", ...iconStyles);
         iconWrapper.setAttribute("data-tooltip-content", tooltip);
         iconWrapper.setAttribute("data-audio-press-ref", "data-audio-select-press");
-        iconWrapper.addEventListener('action-activate', () => this.mapTackClickListener(type));
+        iconWrapper.addEventListener('action-activate', () => {
+            this.lastFocusedMapTack = iconWrapper;
+            this.mapTackClickListener(type);
+        });
         const icon = document.createElement('fxs-icon');
         icon.classList.add("size-12");
         icon.style.backgroundImage = MapTackUIUtils.getMapTackIconBgImage(type);

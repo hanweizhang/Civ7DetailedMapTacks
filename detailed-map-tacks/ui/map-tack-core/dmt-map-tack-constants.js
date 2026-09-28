@@ -30,6 +30,14 @@ export const QuarterType = {
 };
 export const ExcludedItems = new Set();
 
+/**
+ * Whether the given device type (defaults to the active one) drives gamepad focus navigation.
+ * Hybrid covers handhelds such as the Steam Deck, which the game pairs with Controller.
+ */
+export function isGamepadDevice(deviceType = Input.getActiveDeviceType()) {
+    return deviceType == InputDeviceType.Controller || deviceType == InputDeviceType.Hybrid;
+}
+
 function populateQuarterTypes() {
     let index = Object.keys(QuarterType).length;
     for (const itemRef of GameInfo.UniqueQuarters) {
