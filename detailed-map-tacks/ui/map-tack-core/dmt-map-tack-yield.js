@@ -401,8 +401,7 @@ class MapTackYieldSingleton {
     }
     getAdjacentOtherOwnerYields(adjacencyDef, adjacentPlotDetails) {
         const filterFunction = e =>
-            e?.details?.owner?.isMajor &&
-            e?.details?.owner.id != GameContext.localPlayerID;
+            e?.details?.owner && e?.details?.owner.id != GameContext.localPlayerID;
         const name = "LOC_UI_OTHER_OWNER";
         return this.getAdjacentYieldsHelper(adjacencyDef, adjacentPlotDetails, filterFunction, name);
     }
