@@ -1,3 +1,4 @@
+import { getGlobalParamNumber } from '/core/ui/utilities/utilities-data.js';
 
 import MapTackUtils from './dmt-map-tack-utils.js';
 import { ConstructibleClassType, DirectionNames, QuarterType } from './dmt-map-tack-constants.js';
@@ -221,6 +222,14 @@ class MapTackYieldSingleton {
             const yields = this.getAdjacentUniqueQuarterTypeYields(adjacencyDef, adjacentPlotDetails);
             if (yields) { adjacencyYields.push(yields); }
         }
+        if (adjacencyDef.AdjacentBreathtakingAppeal || adjacencyDef.AdjacentCharmingAppeal) {
+            const yields = this.getAdjacentAppealYields(adjacencyDef, adjacentPlotDetails);
+            if (yields) { adjacencyYields.push(yields); }
+        }
+        if (adjacencyDef.AdjacentOtherOwner) {
+            const yields = this.getAdjacentOtherOwnerYields(adjacencyDef, adjacentPlotDetails);
+            if (yields) { adjacencyYields.push(yields); }
+        }
         // Flat amount.
         const flatAmountYield = MapTackModifier.getFlatAmountYield(adjacencyDef.ID);
         if (flatAmountYield) {
@@ -373,6 +382,27 @@ class MapTackYieldSingleton {
     getAdjacentUniqueQuarterTypeYields(adjacencyDef, adjacentPlotDetails) {
         const filterFunction = e => e?.details?.quarterType == QuarterType[adjacencyDef.AdjacentUniqueQuarterType];
         const name = GameInfo.UniqueQuarters.lookup(adjacencyDef.AdjacentUniqueQuarterType)?.Name;
+        return this.getAdjacentYieldsHelper(adjacencyDef, adjacentPlotDetails, filterFunction, name);
+    }
+    getAdjacentAppealYields(adjacencyDef, adjacentPlotDetails) {
+        const level1 = getGlobalParamNumber("APPEAL_FOR_HAPPINESS_TILE_YIELD");
+        const level2 = getGlobalParamNumber("APPEAL_FOR_DOUBLE_HAPPINESS_TILE_YIELD");
+        const name = adjacencyDef.AdjacentBreathtakingAppeal ?
+            "LOC_UI_BREATHTAKING_APPEAL" :
+            "LOC_UI_CHARMING_APPEAL";
+        const filterFunction = e => {
+            if (level2 <= e?.details?.appeal) {
+                return adjacencyDef.AdjacentBreathtakingAppeal;
+            } else if (level1 <= e?.details.appeal) {
+                return adjacencyDef.AdjacentCharmingAppeal;
+            }
+        };
+        return this.getAdjacentYieldsHelper(adjacencyDef, adjacentPlotDetails, filterFunction, name);
+    }
+    getAdjacentOtherOwnerYields(adjacencyDef, adjacentPlotDetails) {
+        const filterFunction = e =>
+            e?.details?.owner && e?.details?.owner.id != GameContext.localPlayerID;
+        const name = "LOC_UI_OTHER_OWNER";
         return this.getAdjacentYieldsHelper(adjacencyDef, adjacentPlotDetails, filterFunction, name);
     }
     /**
